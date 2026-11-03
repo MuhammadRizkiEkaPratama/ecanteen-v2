@@ -1,0 +1,58 @@
+# Unit systemd untuk E-Canteen v2.
+#
+# Pasang di server web (192.168.56.103) sebagai /etc/systemd/system/ecanteen.service
+#
+# Kenapa systemd, bukan "java -jar" di terminal: begitu SSH ditutup, proses yang
+# dijalankan langsung dari terminal ikut mati. Unit ini membuat aplikasi hidup
+# lagi sendiri setelah server di-reboot, dan itu syarat paling dasar sebuah
+# layanan bisa disebut berjalan di server.
+
+[Unit]
+Description=E-Canteen v2 (Spring Boot)
+Documentation=file:/opt/ecanteen/PANDUAN-DEPLOY.md
+# Menunggu jaringan BENAR-BENAR siap, bukan sekadar network.target. Tanpa ini
+# aplikasi bisa naik sebelum alamat host-only terpasang, lalu gagal menyambung
+# ke server database dan mati sebelum sempat mencoba lagi.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+# Akun khusus tanpa shell dan tanpa hak apa pun di luar foldernya sendiri.
+# Menjalankan aplikasi web sebagai root berarti satu celah di aplikasi itu
+# menjadi celah di seluruh mesin.
+User=ecanteen
+Group=ecanteen
+
+# WAJIB. WebConfig.java menyajikan berkas unggahan dari "file:uploads/", dan
+# jalur itu relatif terhadap folder kerja. Tanpa baris ini, folder kerjanya
+# adalah / dan gambar menu yang diunggah tidak akan pernah ketemu.
+WorkingDirectory=/opt/ecanteen
+
+# -Xmx384m: batas memori heap ditulis eksplisit. Tanpa ini JVM menentukan
+# sendiri dari total RAM mesin, dan di VM kecil ia bisa membengkak sampai
+# mendorong Apache atau sshd keluar dari memori.
+ExecStart=/usr/bin/java -Xmx384m -jar /opt/ecanteen/ecanteen.jar
+
+# JVM keluar dengan kode 143 saat menerima SIGTERM, dan itu penghentian yang
+# normal. Tanpa baris ini systemd menandainya sebagai kegagalan setiap kali
+# layanan di-restart.
+SuccessExitStatus=143
+
+Restart=on-failure
+RestartSec=10
+
+# --- Pengerasan dasar -----------------------------------------------------
+# Semuanya bawaan systemd, tidak butuh alat tambahan.
+NoNewPrivileges=true
+PrivateTmp=true
+# /usr, /boot, dan /etc jadi hanya-baca bagi proses ini.
+ProtectSystem=full
+# Folder /home tidak terlihat sama sekali dari proses ini.
+ProtectHome=true
+# Satu-satunya tempat yang boleh ditulis: folder unggahan gambar menu.
+ReadWritePaths=/opt/ecanteen/uploads
+
+[Install]
+WantedBy=multi-user.target

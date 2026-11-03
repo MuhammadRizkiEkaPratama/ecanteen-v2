@@ -1,0 +1,60 @@
+# Konfigurasi E-Canteen untuk SERVER, bukan untuk laptop.
+#
+# Salin ke server web sebagai:
+#     /opt/ecanteen/config/application.properties
+#
+# Spring Boot membaca berkas di folder `config/` sebelah JAR, dan isinya
+# MENIMPA application.properties yang ada di dalam JAR. Itu sebabnya berkas ini
+# ada: rahasia produksi tidak ikut dibungkus ke dalam JAR yang dikirim
+# bolak-balik, dan skrip deploy tidak pernah menyentuhnya.
+#
+# BERKAS INI CONTOH. Yang di server berisi sandi sungguhan dan TIDAK BOLEH
+# ikut masuk Git maupun OneDrive.
+#
+# Izin berkasnya di server dipersempit:
+#     sudo chown root:ecanteen /opt/ecanteen/config/application.properties
+#     sudo chmod 640           /opt/ecanteen/config/application.properties
+# Artinya: hanya root yang boleh mengubah, hanya grup ecanteen yang boleh
+# membaca. Pengguna lain di mesin itu tidak bisa membaca sandi databasenya.
+
+server.port=8080
+
+# --- Server database ------------------------------------------------------
+# Menunjuk ke mesin LAIN, bukan localhost. Inilah pemisahan lapis web dan lapis
+# data yang membuat susunan ini menyerupai server sungguhan: aplikasi bisa
+# dimatikan, dipindah, atau digandakan tanpa datanya ikut berpindah.
+#
+# allowPublicKeyRetrieval=true diperlukan karena MySQL 8 memakai
+# caching_sha2_password sedangkan sambungan ini belum memakai TLS. Di jaringan
+# lab host-only ini bisa diterima; di jaringan sungguhan, TLS-nya yang harus
+# dinyalakan, bukan barisnya yang dihapus.
+spring.datasource.url=jdbc:mysql://localhost:3306/ecanteen?useSSL=false&serverTimezone=Asia/Jakarta&allowPublicKeyRetrieval=true
+
+# BUKAN root. Akun ini hanya punya hak atas basis data `ecanteen` saja, dan
+# hanya boleh menyambung dari alamat server web. Lihat buat-db-dan-user.sql.
+spring.datasource.username=ecanteen_app
+spring.datasource.password=CHANGE_ME
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# --- MyBatis --------------------------------------------------------------
+mybatis.mapper-locations=classpath:mapper/*.xml
+mybatis.type-aliases-package=com.canteen.entity
+mybatis.configuration.map-underscore-to-camel-case=true
+
+# --- Beda dari setelan laptop ---------------------------------------------
+# Di laptop nilainya false supaya perubahan templat langsung terlihat tanpa
+# restart. Di server itu cuma memboroskan: templatnya terkunci di dalam JAR dan
+# tidak mungkin berubah selagi aplikasi berjalan, jadi membacanya ulang tiap
+# permintaan adalah kerja yang hasilnya selalu sama.
+spring.thymeleaf.cache=true
+
+spring.servlet.multipart.max-file-size=5MB
+spring.servlet.multipart.max-request-size=5MB
+
+# --- Catatan galat --------------------------------------------------------
+# Jejak tumpukan tidak ditampilkan ke pengunjung. Halaman galat yang memuat
+# nama kelas, versi pustaka, dan jalur berkas adalah peta gratis bagi siapa pun
+# yang sedang mencari celah.
+server.error.include-stacktrace=never
+server.error.include-message=never

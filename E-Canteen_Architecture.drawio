@@ -1,0 +1,77 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Architecture" id="arch">
+    <mxGraphModel dx="1837" dy="863" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="940" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dbeafe;strokeColor=#374151;fontColor=#111827;fontSize=12;fontStyle=1;align=center;spacingTop=4;" value="Client: Web Browser&#xa;Student / Vendor / Superadmin" vertex="1">
+          <mxGeometry height="60" width="320" x="560" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="n12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e5e7eb;strokeColor=#374151;fontColor=#111827;fontSize=12;fontStyle=1;align=center;spacingTop=4;" value="DispatcherServlet&#xa;Front Controller (Spring MVC)" vertex="1">
+          <mxGeometry height="60" width="320" x="560" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="n13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fde2e4;strokeColor=#374151;fontColor=#111827;fontSize=12;fontStyle=1;align=center;spacingTop=4;" value="Controller Layer (@Controller)&#xa;reads session, calls service" vertex="1">
+          <mxGeometry height="60" width="320" x="560" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="n14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ede9fe;strokeColor=#374151;fontColor=#111827;fontSize=12;fontStyle=1;align=center;spacingTop=4;" value="Service Layer (@Service)&#xa;business logic: checkout, discounts, stock, BCrypt" vertex="1">
+          <mxGeometry height="60" width="320" x="560" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="n15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#374151;fontColor=#111827;fontSize=12;fontStyle=1;align=center;spacingTop=4;" value="Persistence Layer / DAO&#xa;MyBatis mapper interface + XML SQL" vertex="1">
+          <mxGeometry height="60" width="320" x="560" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="n16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e5e7eb;strokeColor=#374151;fontColor=#111827;fontSize=12;fontStyle=1;align=center;spacingTop=4;" value="MySQL Database&#xa;schema ecanteen, 11 tables" vertex="1">
+          <mxGeometry height="60" width="320" x="560" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="n17" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#374151;fontColor=#111827;fontSize=12;fontStyle=1;align=center;spacingTop=4;" value="View Layer (Thymeleaf)&#xa;server-side HTML rendering" vertex="1">
+          <mxGeometry height="60" width="280" x="120" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="n18" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#374151;fontColor=#111827;fontSize=12;fontStyle=1;align=center;spacingTop=4;" value="Cross-cutting&#xa;LoginInterceptor (auth + role)&#xa;HttpSession (logged-in user)&#xa;LogService (audit trail)" vertex="1">
+          <mxGeometry height="150" width="280" x="950" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="n19" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#374151;fontColor=#111827;fontSize=12;fontStyle=1;align=center;spacingTop=4;" value="Model (entity)&#xa;User, Order, MenuItem, Stall,&#xa;CartView, SalesReport ..." vertex="1">
+          <mxGeometry height="90" width="280" x="130" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="n20" edge="1" parent="1" source="n11" style="endArrow=classic;html=1;rounded=0;fontSize=10;fontColor=#111827;strokeColor=#374151;dashed=0;exitX=0.4;exitY=1;exitDx=0;exitDy=0;entryX=0.4;entryY=0;entryDx=0;entryDy=0;" target="n12" value="1. HTTP request">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n21" edge="1" parent="1" source="n12" style="endArrow=classic;html=1;rounded=0;fontSize=10;fontColor=#111827;strokeColor=#2563eb;dashed=0;exitX=0.6;exitY=0;exitDx=0;exitDy=0;entryX=0.6;entryY=1;entryDx=0;entryDy=0;" target="n11" value="9. HTTP response">
+          <mxGeometry relative="1" x="-0.25" y="-18" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n22" edge="1" parent="1" source="n12" style="endArrow=classic;html=1;rounded=0;fontSize=10;fontColor=#111827;strokeColor=#374151;dashed=0;exitX=0.4;exitY=1;exitDx=0;exitDy=0;entryX=0.4;entryY=0;entryDx=0;entryDy=0;" target="n13" value="2. route to handler">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n23" edge="1" parent="1" source="n13" style="endArrow=classic;html=1;rounded=0;fontSize=10;fontColor=#111827;strokeColor=#2563eb;dashed=0;exitX=0.6;exitY=0;exitDx=0;exitDy=0;entryX=0.6;entryY=1;entryDx=0;entryDy=0;" target="n12" value="6. view name + model">
+          <mxGeometry relative="1" y="-58" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n24" edge="1" parent="1" source="n13" style="endArrow=classic;html=1;rounded=0;fontSize=10;fontColor=#111827;strokeColor=#374151;dashed=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n14" value="3. calls">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n25" edge="1" parent="1" source="n14" style="endArrow=classic;html=1;rounded=0;fontSize=10;fontColor=#111827;strokeColor=#374151;dashed=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n15" value="4. calls">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n26" edge="1" parent="1" source="n15" style="endArrow=classic;html=1;rounded=0;fontSize=10;fontColor=#111827;strokeColor=#374151;dashed=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n16" value="5. JDBC / SQL">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n27" edge="1" parent="1" source="n12" style="endArrow=classic;html=1;rounded=0;fontSize=10;fontColor=#111827;strokeColor=#2563eb;dashed=0;exitX=0;exitY=0.4;exitDx=0;exitDy=0;entryX=1;entryY=0.4;entryDx=0;entryDy=0;" target="n17" value="7. resolve and render">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n28" edge="1" parent="1" source="n17" style="endArrow=classic;html=1;rounded=0;fontSize=10;fontColor=#111827;strokeColor=#2563eb;dashed=0;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.6;entryDx=0;entryDy=0;" target="n12" value="8. HTML">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n29" edge="1" parent="1" source="n18" style="endArrow=none;dashed=1;html=1;strokeColor=#9ca3af;" target="n13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n30" edge="1" parent="1" source="n19" style="endArrow=none;dashed=1;html=1;strokeColor=#9ca3af;" target="n14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ttl" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fontColor=#111827;fillColor=none;strokeColor=#374151;" value="Layered Architecture and Request/Response Flow of E-Canteen" vertex="1">
+          <mxGeometry height="46" width="440" x="500" y="820" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

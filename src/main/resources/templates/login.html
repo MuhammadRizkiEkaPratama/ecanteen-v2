@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E63946; --yellow:#FFB703; --dark:#111111; --surface:#FFFAF5; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html, body { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#111; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+
+        /* Split screen */
+        .split { display:grid; grid-template-columns:1.05fr 1fr; min-height:100vh; }
+
+        /* ---- LEFT BRAND PANEL ---- */
+        .brand {
+            position:relative; overflow:hidden; padding:56px 56px 48px;
+            display:flex; flex-direction:column; justify-content:space-between;
+            background:linear-gradient(150deg,#1a1a1a 0%,#2a0a0a 55%,#111 100%);
+        }
+        /* dot pattern ornament */
+        .brand::before {
+            content:''; position:absolute; inset:0;
+            background-image:radial-gradient(rgba(255,255,255,0.05) 1.4px, transparent 1.4px);
+            background-size:24px 24px; pointer-events:none;
+        }
+        /* ambient orbs */
+        .orb { position:absolute; border-radius:50%; pointer-events:none; }
+        .orb-red    { width:380px; height:380px; top:-120px; right:-120px; background:radial-gradient(circle,rgba(230,57,70,0.35),transparent 65%); }
+        .orb-yellow { width:300px; height:300px; bottom:-100px; left:-80px; background:radial-gradient(circle,rgba(255,183,3,0.18),transparent 65%); }
+
+        .brand-logo { display:inline-flex; align-items:center; gap:12px; position:relative; z-index:2; }
+        .brand-logo-icon { width:42px; height:42px; background:#E63946; border-radius:11px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(230,57,70,0.4); }
+
+        .brand-hero { position:relative; z-index:2; }
+        .brand-tag { display:inline-block; background:rgba(255,183,3,0.14); border:1px solid rgba(255,183,3,0.3); color:#FFB703; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:3px; padding:6px 14px; border-radius:999px; margin-bottom:22px; }
+        .brand-headline { color:white; font-size:clamp(40px,5vw,62px); font-weight:900; text-transform:uppercase; line-height:0.98; }
+        .brand-headline .accent { color:#E63946; }
+        .brand-sub { color:#999; font-size:15px; line-height:1.7; margin-top:18px; max-width:420px; }
+
+        /* feature chips */
+        .feature-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:28px; position:relative; z-index:2; }
+        .feature { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#ccc; font-size:13px; font-weight:600; padding:9px 16px; border-radius:999px; }
+        .feature svg { color:#FFB703; }
+
+        /* floating food images */
+        .food-orb { position:absolute; height:auto; filter:drop-shadow(0 24px 50px rgba(0,0,0,0.55)); z-index:2; }
+        .food-1 { width:190px; bottom:90px; right:48px; transform:rotate(6deg); animation:float1 5s ease-in-out infinite; }
+        .food-2 { width:140px; bottom:40px; right:210px; transform:rotate(-8deg); animation:float2 6s ease-in-out infinite; }
+        @keyframes float1 { 0%,100%{transform:rotate(6deg) translateY(0)} 50%{transform:rotate(6deg) translateY(-16px)} }
+        @keyframes float2 { 0%,100%{transform:rotate(-8deg) translateY(0)} 50%{transform:rotate(-8deg) translateY(-12px)} }
+
+        .brand-foot { position:relative; z-index:2; color:#555; font-size:12px; }
+
+        /* ---- RIGHT FORM PANEL ---- */
+        .form-side {
+            background:var(--surface);
+            background-image:radial-gradient(rgba(230,57,70,0.05) 1.3px, transparent 1.3px);
+            background-size:26px 26px;
+            display:flex; align-items:center; justify-content:center; padding:40px 24px;
+        }
+        .form-box { width:100%; max-width:400px; animation:slideIn .6s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes slideIn { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+        .form-label { display:block; font-size:13px; font-weight:600; color:#555; margin-bottom:6px; }
+        .input-wrap { position:relative; }
+        .input-wrap svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#bbb; pointer-events:none; transition:color .2s; }
+        .form-input { width:100%; border:2px solid #e8e0d8; border-radius:12px; padding:12px 14px 12px 42px; font-size:14px; font-family:'Plus Jakarta Sans',sans-serif; outline:none; transition:border-color .2s, box-shadow .2s; background:white; }
+        .form-input:focus { border-color:#E63946; box-shadow:0 0 0 3px rgba(230,57,70,0.1); }
+        .input-wrap:focus-within svg { color:#E63946; }
+        .submit-btn { width:100%; background:#E63946; color:white; font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; text-transform:uppercase; letter-spacing:1px; border:none; padding:14px; border-radius:999px; cursor:pointer; transition:background .2s, box-shadow .2s; margin-top:4px; }
+        .submit-btn:hover { background:#c62d3a; box-shadow:0 8px 28px rgba(230,57,70,0.4); }
+        .divider { border:none; border-top:1px solid #e8e0d8; margin:22px 0; }
+        .check-label { display:flex; align-items:center; gap:8px; font-size:13px; color:#666; cursor:pointer; user-select:none; }
+        .check-label input { accent-color:#E63946; width:15px; height:15px; cursor:pointer; }
+
+        @media(max-width:880px) {
+            .split { grid-template-columns:1fr; }
+            .brand { padding:40px 32px; min-height:auto; }
+            .food-orb { display:none; }
+            .brand-hero { padding:24px 0 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="split">
+
+    <!-- LEFT: BRAND SHOWCASE -->
+    <div class="brand">
+        <div class="orb orb-red"></div>
+        <div class="orb orb-yellow"></div>
+
+        <img src="/images/food/kungpao.png" alt="" class="food-orb food-1">
+        <img src="/images/food/noodle-bowl.png" alt="" class="food-orb food-2">
+
+        <div class="brand-logo">
+            <div class="brand-logo-icon"><span class="fd" style="color:white; font-size:16px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:28px; font-weight:900; letter-spacing:3px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+
+        <div class="brand-hero">
+            <span class="brand-tag">Campus Digital Canteen</span>
+            <h1 class="brand-headline">Skip the line.<br><span class="accent">Order ahead.</span></h1>
+            <p class="brand-sub">Browse every stall on campus, order in seconds, and pick up your food when it's ready. No more waiting.</p>
+            <div class="feature-row">
+                <span class="feature">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Fast pickup
+                </span>
+                <span class="feature">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><path stroke-linecap="round" d="M7 7h.01"/></svg>
+                    Auto discounts
+                </span>
+                <span class="feature">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Live order status
+                </span>
+            </div>
+        </div>
+
+        <p class="brand-foot">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+
+    <!-- RIGHT: SIGN IN FORM -->
+    <div class="form-side">
+        <div class="form-box">
+            <h2 class="fd" style="font-size:36px; font-weight:900; text-transform:uppercase; margin-bottom:4px;">Welcome Back</h2>
+            <p style="color:#999; font-size:14px; margin-bottom:26px;">Sign in to your student account to continue.</p>
+
+            <!-- Alerts -->
+            <div th:if="${error}" style="background:#fff0f0; border-left:4px solid #E63946; color:#c62d3a; padding:11px 14px; border-radius:10px; font-size:13px; font-weight:500; margin-bottom:18px;" th:text="${error}"></div>
+            <div th:if="${param.suspended}" style="background:#fffbeb; border-left:4px solid #FFB703; color:#92400e; padding:11px 14px; border-radius:10px; font-size:13px; font-weight:500; margin-bottom:18px;">
+                Your session was deactivated by an administrator. Please sign in again.
+            </div>
+
+            <form method="post" th:action="@{/login}" style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <label class="form-label">Username</label>
+                    <div class="input-wrap">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <input type="text" name="username" class="form-input" th:value="${rememberedUsername}" required placeholder="Your username">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Password</label>
+                    <div class="input-wrap">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 018 0v4"/></svg>
+                        <input type="password" name="password" class="form-input" required placeholder="Your password">
+                    </div>
+                </div>
+                <label class="check-label">
+                    <input type="checkbox" name="remember" value="yes" th:checked="${rememberedUsername != null}">
+                    Remember my username
+                </label>
+                <button type="submit" class="submit-btn">Sign In</button>
+            </form>
+
+            <hr class="divider">
+            <div style="display:flex; flex-direction:column; gap:8px; text-align:center;">
+                <p style="font-size:13px; color:#888;">Don't have an account? <a th:href="@{/register}" style="color:#E63946; font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Register here</a></p>
+                <p style="font-size:13px; color:#888;">Want to sell food? <a th:href="@{/register-vendor}" style="color:#E63946; font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Register as Vendor</a></p>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

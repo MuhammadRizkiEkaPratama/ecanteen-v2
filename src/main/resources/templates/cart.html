@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cart — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E63946; --yellow:#FFB703; --dark:#111111; --surface:#FFFAF5; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--surface); color:var(--dark); min-height:100vh; display:flex; flex-direction:column; }
+        .container { flex:1 0 auto; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        nav { background:#111; position:sticky; top:0; z-index:50; border-bottom:1px solid rgba(255,255,255,0.06); }
+        .nav-inner { max-width:1200px; margin:0 auto; padding:0 24px; height:60px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+        .nav-logo { display:flex; align-items:center; gap:8px; }
+        .nav-logo-icon { width:30px; height:30px; background:#E63946; border-radius:7px; display:flex; align-items:center; justify-content:center; }
+        .btn-outline-nav { padding:8px 16px; color:#aaa; font-size:13px; font-weight:500; border-radius:10px; transition:background 0.2s, color 0.2s; display:inline-flex; align-items:center; gap:6px; }
+        .btn-outline-nav:hover { background:rgba(255,255,255,0.08); color:white; }
+        .page-header { background:#111; padding:40px 24px 36px; }
+        .container { max-width:900px; margin:0 auto; padding:32px 24px 64px; }
+        .card { background:white; border-radius:20px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+        .card-header { background:#111; padding:16px 24px; }
+        .item-row { display:grid; grid-template-columns:1fr 160px 120px 48px; gap:16px; align-items:center; padding:18px 24px; border-bottom:1px solid #f5f0ea; }
+        .item-row:last-child { border-bottom:none; }
+        .qty-form { display:flex; align-items:center; gap:6px; }
+        .qty-input { width:52px; border:2px solid #e8e0d8; border-radius:10px; padding:7px 8px; font-size:14px; text-align:center; font-family:'Plus Jakarta Sans',sans-serif; outline:none; transition:border-color 0.2s; }
+        .qty-input:focus { border-color:#E63946; }
+        .btn-update { background:#f5f0ea; color:#555; border:none; border-radius:8px; padding:7px 10px; font-size:12px; font-weight:600; cursor:pointer; transition:background 0.2s; }
+        .btn-update:hover { background:#e8e0d8; }
+        .btn-remove { background:none; border:none; color:#ccc; cursor:pointer; padding:6px; border-radius:8px; transition:color 0.2s, background 0.2s; display:flex; align-items:center; }
+        .btn-remove:hover { color:#E63946; background:#fff0f0; }
+        .summary-card { background:white; border-radius:20px; padding:24px; box-shadow:0 2px 12px rgba(0,0,0,0.06); display:flex; flex-direction:column; gap:20px; }
+        .checkout-btn { display:flex; align-items:center; justify-content:center; gap:10px; background:#E63946; color:white; font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; text-transform:uppercase; letter-spacing:1px; padding:16px 32px; border-radius:999px; transition:background 0.2s; }
+        .checkout-btn:hover { background:#c62d3a; }
+        .empty-state { text-align:center; padding:80px 24px; }
+        .browse-btn { display:inline-flex; align-items:center; gap:8px; background:#E63946; color:white; font-size:15px; font-weight:600; padding:13px 28px; border-radius:999px; transition:background 0.2s; margin-top:20px; }
+        .browse-btn:hover { background:#c62d3a; }
+        footer { background:#111; border-top:1px solid rgba(255,255,255,0.06); padding:24px; margin-top:0; }
+        .footer-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+
+        /* ---- GRAND ANIMATIONS ---- */
+        @keyframes fadeUp { from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)} }
+        @keyframes pulseGlow {
+            0%,100% { box-shadow:0 4px 18px rgba(230,57,70,.3); }
+            50%     { box-shadow:0 0 0 12px rgba(230,57,70,.14), 0 8px 36px rgba(230,57,70,.55); }
+        }
+        @keyframes btnShimmer {
+            0%   { background-position:-200% center; }
+            100% { background-position:200% center; }
+        }
+        @keyframes ripple { 0%{transform:scale(0);opacity:.5} 100%{transform:scale(4);opacity:0} }
+
+        /* Page header title */
+        .page-header h1 { text-shadow:0 0 40px rgba(255,183,3,.12); }
+
+        /* Item rows stagger */
+        .item-row { animation:fadeUp .45s ease both; }
+
+        /* Checkout button shimmer + glow */
+        .checkout-btn { position:relative; overflow:hidden; animation:pulseGlow 2.6s ease 1s infinite; }
+        .checkout-btn::after {
+            content:''; position:absolute; inset:0; border-radius:999px;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+            background-size:200% 100%;
+            animation:btnShimmer 2.5s ease .8s infinite;
+        }
+        .checkout-btn:hover { animation:none; box-shadow:0 6px 28px rgba(198,45,58,.5); }
+
+        /* Summary card entrance */
+        .summary-card { animation:fadeUp .5s ease .3s both; }
+
+        /* Card entrance */
+        .card { animation:fadeUp .5s ease .1s both; }
+
+        /* Remove btn hover glow */
+        .btn-remove:hover { color:#E63946; background:#fff0f0; box-shadow:0 2px 10px rgba(230,57,70,.15); }
+
+        /* Background ambient */
+        body::before { content:''; position:fixed; top:-150px; right:-100px; width:400px; height:400px;
+            background:radial-gradient(circle,rgba(230,57,70,.04) 0%,transparent 65%); pointer-events:none; }
+
+        @media(max-width:640px) {
+            .item-row { grid-template-columns:1fr; }
+            .nav-inner { height:auto; padding:12px 16px; flex-wrap:wrap; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <div class="nav-inner">
+        <a th:href="@{/menu}" class="nav-logo">
+            <div class="nav-logo-icon"><span class="fd" style="color:white; font-size:12px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:20px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </a>
+        <a th:href="@{/menu}" class="btn-outline-nav">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            <span style="color:#aaa;">Back to Menu</span>
+        </a>
+    </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <div style="max-width:900px; margin:0 auto;">
+        <span class="fd" style="color:#FFB703; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:3px;">Review</span>
+        <h1 class="fd" style="color:white; font-size:clamp(40px,6vw,64px); font-weight:900; text-transform:uppercase; margin-top:4px; line-height:1;">My Cart</h1>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Error -->
+    <div th:if="${error}" style="background:#fff0f0; border-left:4px solid #E63946; color:#c62d3a; padding:14px 16px; border-radius:10px; margin-bottom:20px; font-size:14px; font-weight:500;" th:text="${error}"></div>
+
+    <!-- EMPTY STATE -->
+    <div th:if="${items.isEmpty()}" class="card empty-state">
+        <div style="width:80px; height:80px; background:#fff0ea; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            <svg width="38" height="38" fill="none" stroke="#E63946" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <h3 class="fd" style="font-size:32px; font-weight:900; text-transform:uppercase; margin-bottom:8px;">Your Cart is Empty</h3>
+        <p style="color:#999; font-size:14px;">Browse the menu and find something delicious!</p>
+        <a th:href="@{/menu}" class="browse-btn">Browse Menu
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+    </div>
+
+    <!-- CART ITEMS + SUMMARY -->
+    <div th:if="${!items.isEmpty()}" style="display:grid; gap:16px;">
+
+        <!-- Items card -->
+        <div class="card">
+            <!-- Header row -->
+            <div class="card-header">
+                <div style="display:grid; grid-template-columns:1fr 160px 120px 48px; gap:16px; padding:0 0;">
+                    <span class="fd" style="color:#666; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:2px;">Item</span>
+                    <span class="fd" style="color:#666; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:2px; text-align:center;">Quantity</span>
+                    <span class="fd" style="color:#666; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:2px; text-align:right;">Subtotal</span>
+                    <span></span>
+                </div>
+            </div>
+
+            <!-- Item rows -->
+            <div th:each="row : ${items}" class="item-row">
+                <!-- Name + stall -->
+                <div>
+                    <p class="fd" style="font-size:20px; font-weight:900; text-transform:uppercase; line-height:1.2;" th:text="${row.itemName}">Item</p>
+                    <span style="display:inline-block; background:#f5f0ea; color:#888; font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; margin-top:5px;" th:text="${row.stallName}">Stall</span>
+                    <span style="display:inline-block; color:#bbb; font-size:11px; margin-top:5px; margin-left:6px;">¥<span th:text="${row.unitPrice}">0</span> / item</span>
+                </div>
+
+                <!-- Qty form -->
+                <div class="qty-form" style="justify-content:center;">
+                    <form method="post" th:action="@{/cart/update}" style="display:flex; align-items:center; gap:6px;">
+                        <input type="hidden" name="id" th:value="${row.id}">
+                        <input type="number" name="quantity" th:value="${row.quantity}" min="1" class="qty-input">
+                        <button type="submit" class="btn-update">Update</button>
+                    </form>
+                </div>
+
+                <!-- Line total -->
+                <div style="text-align:right;">
+                    <span class="fd" style="font-size:22px; font-weight:900; color:#E63946;">¥<span th:text="${row.lineTotal}">0</span></span>
+                </div>
+
+                <!-- Remove -->
+                <div style="display:flex; justify-content:center;">
+                    <form method="post" th:action="@{/cart/remove}">
+                        <input type="hidden" name="id" th:value="${row.id}">
+                        <button type="submit" class="btn-remove" title="Remove">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary card -->
+        <div class="summary-card">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+                <div>
+                    <p style="color:#999; font-size:13px; margin-bottom:4px;">Order Subtotal</p>
+                    <p class="fd" style="font-size:42px; font-weight:900; color:#111; line-height:1;">¥<span th:text="${subtotal}">0</span></p>
+                    <p style="color:#bbb; font-size:12px; margin-top:4px;">Discounts and promos will be applied at checkout.</p>
+                </div>
+                <a th:href="@{/order/checkout}" class="checkout-btn">
+                    Checkout
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-inner">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:24px; height:24px; background:#E63946; border-radius:6px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:white; font-size:10px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:16px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#444; font-size:12px;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+
+<script>
+document.querySelectorAll('.item-row').forEach(function(row, i){
+    row.style.animationDelay = (0.1 + i * 0.09) + 's';
+});
+</script>
+</body>
+</html>

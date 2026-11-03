@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; --green:#2DC653; --blue:#4CC9F0; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#121212;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        body::before { content:''; position:fixed; top:-200px; right:-160px; width:520px; height:520px; background:radial-gradient(circle,rgba(255,183,3,0.07),transparent 65%); pointer-events:none; z-index:0; animation:drift1 24s ease-in-out infinite; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-110px,80px) scale(1.15)} }
+        .v-nav { background:rgba(15,15,15,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:1140px; margin:0 auto; padding:0 30px; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:11px; }
+        .logo-icon { width:34px; height:34px; background:#FFB703; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+        .btn-ghost { padding:9px 18px; border:1px solid rgba(255,255,255,0.14); color:#bbb; border-radius:11px; font-size:13px; font-weight:600; transition:all .2s; display:inline-flex; align-items:center; gap:7px; }
+        .btn-ghost:hover { border-color:#FFB703; color:#FFB703; }
+        .wrap { max-width:1140px; margin:0 auto; padding:38px 30px 64px; flex:1 0 auto; width:100%; position:relative; z-index:1; }
+        .sec-label { color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase; display:block; margin-bottom:3px; }
+        .alert { border-radius:14px; padding:14px 18px; font-size:13.5px; line-height:1.6; margin-bottom:18px; }
+        .alert-success { background:rgba(45,198,83,0.1); border:1px solid rgba(45,198,83,0.3); color:#8ee6a8; }
+        .alert-danger  { background:rgba(230,57,70,0.1);  border:1px solid rgba(230,57,70,0.3);  color:#fca5a5; }
+
+        .tbl { width:100%; border-collapse:separate; border-spacing:0 10px; }
+        .tbl th { text-align:left; color:#777; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:0 16px; }
+        .row-card td { background:#1b1b1b; padding:13px 16px; vertical-align:middle; border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06); }
+        .row-card td:first-child { border-left:1px solid rgba(255,255,255,0.06); border-radius:14px 0 0 14px; }
+        .row-card td:last-child  { border-right:1px solid rgba(255,255,255,0.06); border-radius:0 14px 14px 0; }
+
+        .badge { font-size:10.5px; font-weight:700; padding:4px 11px; border-radius:999px; text-transform:uppercase; letter-spacing:0.5px; }
+        .b-active    { background:rgba(45,198,83,0.15);   color:#8ee6a8; }
+        .b-suspended { background:rgba(230,57,70,0.15);   color:#fca5a5; }
+        .b-role      { background:rgba(255,255,255,0.08); color:#aaa; }
+        .b-role-super { background:rgba(255,183,3,0.15); color:#FFB703; }
+
+        .btn-suspend  { font-size:12px; font-weight:700; padding:7px 14px; border-radius:9px; cursor:pointer; border:1px solid rgba(230,57,70,0.4); background:transparent; color:#fca5a5; transition:all .18s; }
+        .btn-suspend:hover { background:rgba(230,57,70,0.12); border-color:#E63946; }
+        .btn-activate { font-size:12px; font-weight:700; padding:7px 14px; border-radius:9px; cursor:pointer; border:1px solid rgba(45,198,83,0.4); background:transparent; color:#8ee6a8; transition:all .18s; }
+        .btn-activate:hover { background:rgba(45,198,83,0.12); border-color:#2DC653; }
+        .pw-input { background:rgba(255,255,255,0.05); border:1.5px solid rgba(255,255,255,0.1); border-radius:9px; padding:7px 11px; color:white; font-size:12px; font-family:inherit; outline:none; width:130px; transition:border-color .2s; }
+        .pw-input:focus { border-color:#FFB703; }
+        .pw-input::placeholder { color:#555; }
+        .btn-reset { font-size:12px; font-weight:700; padding:7px 14px; border-radius:9px; cursor:pointer; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.04); color:#ccc; transition:all .18s; }
+        .btn-reset:hover { border-color:#888; color:white; }
+
+        footer { background:#0f0f0f; border-top:1px solid rgba(255,183,3,0.1); padding:24px 30px; position:relative; z-index:1; }
+        .foot-inner { max-width:1140px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/superadmin}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:14px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:22px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Admin</span></span>
+        </a>
+        <a th:href="@{/superadmin}" class="btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Dashboard
+        </a>
+    </div>
+</nav>
+
+<div class="wrap">
+    <span class="sec-label">User Management</span>
+    <h1 class="fd" style="font-size:clamp(30px,4vw,46px); font-weight:900; text-transform:uppercase; color:white; line-height:1; margin-bottom:24px;">
+        Manage <span style="color:#FFB703;">Users</span>
+    </h1>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}"   class="alert alert-danger"  th:text="${error}"></div>
+
+    <div style="overflow-x:auto;">
+        <table class="tbl">
+            <thead>
+            <tr><th>#</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="u : ${users}" class="row-card">
+                <td><span class="fd" style="color:#555; font-size:15px; font-weight:900;">#<span th:text="${u.id}">0</span></span></td>
+                <td><span style="color:white; font-weight:700;" th:text="${u.username}">user</span></td>
+                <td style="color:#888; font-size:13px;" th:text="${u.email}">email</td>
+                <td>
+                    <span class="badge" th:classappend="${u.role == 'superadmin'} ? 'b-role-super' : 'b-role'" th:text="${u.role}">role</span>
+                </td>
+                <td>
+                    <span th:if="${u.isActive}"  class="badge b-active">Active</span>
+                    <span th:if="${!u.isActive}" class="badge b-suspended">Suspended</span>
+                </td>
+                <td>
+                    <div th:if="${u.role != 'superadmin'}" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <form method="post" th:action="@{/superadmin/users/toggle}">
+                            <input type="hidden" name="id" th:value="${u.id}">
+                            <input type="hidden" name="active" th:value="${!u.isActive}">
+                            <button th:class="${u.isActive ? 'btn-suspend' : 'btn-activate'}"
+                                    th:text="${u.isActive ? 'Suspend' : 'Activate'}">Toggle</button>
+                        </form>
+                        <form method="post" th:action="@{/superadmin/users/reset}" style="display:flex; gap:6px; align-items:center;">
+                            <input type="hidden" name="id" th:value="${u.id}">
+                            <input name="newPassword" class="pw-input" placeholder="New password" required>
+                            <button class="btn-reset">Reset PW</button>
+                        </form>
+                    </div>
+                    <span th:if="${u.role == 'superadmin'}" style="color:#555; font-size:12px;">— protected</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <div style="display:flex; align-items:center; gap:9px;">
+            <div style="width:26px; height:26px; background:#FFB703; border-radius:7px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:#111; font-size:11px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:17px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+</body>
+</html>

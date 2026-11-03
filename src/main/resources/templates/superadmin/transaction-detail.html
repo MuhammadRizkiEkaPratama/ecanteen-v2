@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Detail — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; --green:#2DC653; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#121212;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        body::before { content:''; position:fixed; top:-200px; right:-160px; width:520px; height:520px; background:radial-gradient(circle,rgba(255,183,3,0.07),transparent 65%); pointer-events:none; z-index:0; animation:drift1 24s ease-in-out infinite; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-110px,80px) scale(1.15)} }
+        .v-nav { background:rgba(15,15,15,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:820px; margin:0 auto; padding:0 30px; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:11px; }
+        .logo-icon { width:34px; height:34px; background:#FFB703; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+        .btn-ghost { padding:9px 18px; border:1px solid rgba(255,255,255,0.14); color:#bbb; border-radius:11px; font-size:13px; font-weight:600; transition:all .2s; display:inline-flex; align-items:center; gap:7px; }
+        .btn-ghost:hover { border-color:#FFB703; color:#FFB703; }
+        .wrap { max-width:820px; margin:0 auto; padding:38px 30px 64px; flex:1 0 auto; width:100%; position:relative; z-index:1; }
+        .panel { background:#1b1b1b; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden; margin-bottom:22px; }
+        .badge { font-size:11px; font-weight:700; padding:5px 12px; border-radius:999px; text-transform:uppercase; letter-spacing:0.5px; }
+        .b-PENDING    { background:rgba(255,183,3,0.15);   color:#FFB703; }
+        .b-PROCESSING { background:rgba(76,201,240,0.15);  color:#7dd3fc; }
+        .b-READY      { background:rgba(45,198,83,0.15);   color:#8ee6a8; }
+        .b-PICKED_UP  { background:rgba(150,150,150,0.15); color:#aaa; }
+        .b-CANCELLED  { background:rgba(230,57,70,0.15);   color:#fca5a5; }
+        .item-row { display:grid; grid-template-columns:2fr 1fr 0.6fr 1fr; gap:10px; padding:13px 20px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px; align-items:center; }
+        .item-row:last-child { border-bottom:none; }
+
+        footer { background:#0f0f0f; border-top:1px solid rgba(255,183,3,0.1); padding:24px 30px; position:relative; z-index:1; }
+        .foot-inner { max-width:820px; margin:0 auto; display:flex; align-items:center; justify-content:center; }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/superadmin}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:14px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:22px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Admin</span></span>
+        </a>
+        <a th:href="@{/superadmin/transactions}" class="btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            All Transactions
+        </a>
+    </div>
+</nav>
+
+<div class="wrap">
+    <span style="color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase; display:block; margin-bottom:3px;">Transaction Detail</span>
+    <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:8px;">
+        <h1 class="fd" style="font-size:clamp(28px,4vw,42px); font-weight:900; text-transform:uppercase; color:white; line-height:1;">
+            Order #<span th:text="${order.id}">0</span>
+        </h1>
+        <span class="badge" th:classappend="'b-' + ${order.status}" th:text="${order.status}">PENDING</span>
+    </div>
+    <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:28px;">
+        <span style="color:#666; font-size:13px;">Payment: <span style="color:#aaa;" th:text="${order.paymentMethod}">-</span></span>
+        <span style="color:#666; font-size:13px;">Date: <span style="color:#aaa;" th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy HH:mm')}">-</span></span>
+    </div>
+
+    <!-- Items -->
+    <div class="panel">
+        <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.07);">
+            <h2 class="fd" style="font-size:18px; font-weight:900; text-transform:uppercase; color:#FFB703;">Order Items</h2>
+        </div>
+        <div class="item-row" style="color:#777; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px;">
+            <span>Item</span><span>Unit Price</span><span>Qty</span><span style="text-align:right;">Subtotal</span>
+        </div>
+        <div class="item-row" th:each="item : ${items}">
+            <span style="color:#ddd; font-weight:600;" th:text="${item.itemName}">Item</span>
+            <span style="color:#999;">¥<span th:text="${item.unitPrice}">0</span></span>
+            <span style="color:#999;" th:text="${item.quantity}">1</span>
+            <span class="fd" style="font-size:17px; font-weight:900; color:white; text-align:right;">¥<span th:text="${item.lineTotal}">0</span></span>
+        </div>
+        <div style="padding:16px 20px; border-top:1px solid rgba(255,255,255,0.08); background:rgba(255,183,3,0.025);">
+            <div style="display:flex; justify-content:space-between; font-size:13px; color:#888; margin-bottom:6px;"><span>Subtotal</span><span>¥<span th:text="${order.subtotal}">0</span></span></div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; color:#8ee6a8; margin-bottom:12px;"><span>Discount</span><span>− ¥<span th:text="${order.discountTotal}">0</span></span></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:12px; border-top:1.5px dashed rgba(255,255,255,0.1);">
+                <span class="fd" style="font-size:20px; font-weight:900; text-transform:uppercase; color:white;">Total</span>
+                <span class="fd" style="font-size:30px; font-weight:900; color:#FFB703;">¥<span th:text="${order.totalAmount}">0</span></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+</body>
+</html>

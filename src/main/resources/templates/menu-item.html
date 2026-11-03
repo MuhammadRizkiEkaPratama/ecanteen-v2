@@ -1,0 +1,176 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${item.name} + ' — E-Canteen'">Item — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E63946; --yellow:#FFB703; --dark:#111111; --surface:#FFFAF5; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--surface); color:var(--dark); }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        nav { background:#111; position:sticky; top:0; z-index:50; border-bottom:1px solid rgba(255,255,255,0.06); }
+        .nav-inner { max-width:1200px; margin:0 auto; padding:0 24px; height:60px; display:flex; align-items:center; justify-content:space-between; }
+        .btn-nav { padding:8px 16px; color:#aaa; font-size:13px; font-weight:500; border-radius:10px; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s, color 0.2s; }
+        .btn-nav:hover { background:rgba(255,255,255,0.08); color:white; }
+        .container { max-width:760px; margin:0 auto; padding:32px 24px 80px; display:flex; flex-direction:column; gap:20px; }
+        .card { background:white; border-radius:20px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.06); }
+        .card-head { background:#111; padding:14px 20px; }
+        .card-body { padding:20px; }
+        /* Rating radio pills */
+        .rating-option { display:none; }
+        .rating-label { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border:2px solid #e8e0d8; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.18s; user-select:none; }
+        .rating-option:checked + .rating-label { border-color:#FFB703; background:#fffbf0; color:#111; }
+        .rating-label:hover { border-color:#FFB703; }
+        textarea { width:100%; border:2px solid #e8e0d8; border-radius:12px; padding:12px 14px; font-size:14px; font-family:'Plus Jakarta Sans',sans-serif; outline:none; resize:vertical; transition:border-color 0.2s; }
+        textarea:focus { border-color:#E63946; }
+        .submit-btn { background:#FFB703; color:#111; font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:900; text-transform:uppercase; letter-spacing:1px; border:none; padding:12px 28px; border-radius:999px; cursor:pointer; transition:background 0.2s; }
+        .submit-btn:hover { background:#e6a500; }
+        .review-card { background:white; border-radius:14px; padding:16px; box-shadow:0 1px 6px rgba(0,0,0,0.06); }
+        footer { background:#111; border-top:1px solid rgba(255,255,255,0.06); padding:24px; }
+        .footer-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <a th:href="@{/menu}" style="display:flex; align-items:center; gap:8px;">
+            <div style="width:30px; height:30px; background:#E63946; border-radius:7px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:white; font-size:12px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:20px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </a>
+        <a th:href="@{/menu}" class="btn-nav">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Back to Menu
+        </a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- Item hero -->
+    <div class="card">
+        <div style="position:relative; height:280px; background:#f5f0ea; overflow:hidden;">
+            <img th:if="${item.imageUrl}" th:src="${item.imageUrl}"
+                 style="width:100%; height:100%; object-fit:cover; display:block;" alt="">
+            <div th:unless="${item.imageUrl}" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#f5f0ea,#ede5d8);">
+                <svg width="80" height="80" fill="none" stroke="#c8b89a" stroke-width="1" viewBox="0 0 24 24" style="opacity:0.55;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+            </div>
+            <!-- Availability pill -->
+            <div style="position:absolute; top:16px; left:16px;">
+                <span th:if="${item.isAvailable and item.stock > 0}"
+                      style="background:#2DC653; color:white; font-size:12px; font-weight:700; padding:6px 14px; border-radius:999px; display:inline-flex; align-items:center; gap:6px;">
+                    <span style="width:6px; height:6px; background:white; border-radius:50%; display:inline-block;"></span>
+                    In Stock · <span th:text="${item.stock}">0</span> left
+                </span>
+                <span th:unless="${item.isAvailable and item.stock > 0}"
+                      style="background:rgba(17,17,17,0.75); color:#aaa; font-size:12px; font-weight:700; padding:6px 14px; border-radius:999px;">
+                    Sold Out
+                </span>
+            </div>
+        </div>
+        <div style="padding:20px 24px;">
+            <h1 class="fd" style="font-size:clamp(28px,5vw,42px); font-weight:900; text-transform:uppercase; line-height:1.1; margin-bottom:8px;" th:text="${item.name}">Name</h1>
+            <p style="color:#888; font-size:14px; line-height:1.7; margin-bottom:16px;" th:text="${item.description}">Description</p>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                <span class="fd" style="font-size:38px; font-weight:900; color:#E63946;">¥<span th:text="${item.price}">0</span></span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; gap:2px;">
+                        <span th:each="i : ${#numbers.sequence(1,5)}"
+                              th:style="${i <= avg} ? 'color:#FFB703; font-size:20px;' : 'color:#ddd; font-size:20px;'">★</span>
+                    </div>
+                    <span class="fd" style="font-size:20px; font-weight:900;" th:text="${avg}">0</span>
+                    <span style="color:#bbb; font-size:13px;">(<span th:text="${reviews.size()}">0</span> reviews)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Write review -->
+    <div class="card">
+        <div class="card-head">
+            <h2 class="fd" style="color:white; font-size:18px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">Write a Review</h2>
+        </div>
+        <div class="card-body">
+            <div th:if="${reviewMessage}" style="background:#f0fff6; border-left:4px solid #2DC653; color:#276749; padding:12px 14px; border-radius:10px; font-size:13px; font-weight:500; margin-bottom:16px;" th:text="${reviewMessage}"></div>
+            <div th:if="${reviewError}" style="background:#fff0f0; border-left:4px solid #E63946; color:#c62d3a; padding:12px 14px; border-radius:10px; font-size:13px; font-weight:500; margin-bottom:16px;" th:text="${reviewError}"></div>
+
+            <form method="post" th:action="@{/review/add}" style="display:flex; flex-direction:column; gap:16px;">
+                <input type="hidden" name="menuItemId" th:value="${item.id}">
+                <div>
+                    <p style="font-size:13px; font-weight:600; color:#555; margin-bottom:10px;">Rating</p>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <input type="radio" name="rating" value="5" id="r5" class="rating-option" checked>
+                        <label for="r5" class="rating-label">⭐⭐⭐⭐⭐ &nbsp;5</label>
+                        <input type="radio" name="rating" value="4" id="r4" class="rating-option">
+                        <label for="r4" class="rating-label">⭐⭐⭐⭐ &nbsp;4</label>
+                        <input type="radio" name="rating" value="3" id="r3" class="rating-option">
+                        <label for="r3" class="rating-label">⭐⭐⭐ &nbsp;3</label>
+                        <input type="radio" name="rating" value="2" id="r2" class="rating-option">
+                        <label for="r2" class="rating-label">⭐⭐ &nbsp;2</label>
+                        <input type="radio" name="rating" value="1" id="r1" class="rating-option">
+                        <label for="r1" class="rating-label">⭐ &nbsp;1</label>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:600; color:#555; display:block; margin-bottom:6px;">Comment <span style="color:#bbb; font-weight:400;">(optional)</span></label>
+                    <textarea name="comment" rows="3" placeholder="How was it? Share your experience..."></textarea>
+                </div>
+                <div>
+                    <button type="submit" class="submit-btn">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reviews list -->
+    <div>
+        <h2 class="fd" style="font-size:28px; font-weight:900; text-transform:uppercase; margin-bottom:14px;">
+            Customer Reviews <span style="color:#bbb; font-weight:700; font-size:22px;">(<span th:text="${reviews.size()}">0</span>)</span>
+        </h2>
+
+        <div th:if="${reviews.isEmpty()}" style="background:white; border-radius:16px; padding:48px 24px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); border:2px dashed #e8e0d8;">
+            <div style="width:64px; height:64px; background:#f5f0ea; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+                <svg width="30" height="30" fill="none" stroke="#ccc" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            </div>
+            <p class="fd" style="font-size:22px; font-weight:900; text-transform:uppercase; margin-bottom:6px;">No Reviews Yet</p>
+            <p style="color:#bbb; font-size:13px;">Be the first to review this dish!</p>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <div th:each="r : ${reviews}" class="review-card">
+                <div style="display:flex; align-items:start; justify-content:space-between; gap:12px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:36px; height:36px; background:#E63946; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <span class="fd" style="color:white; font-size:16px; font-weight:900; text-transform:uppercase;" th:text="${#strings.substring(r.username,0,1)}">U</span>
+                        </div>
+                        <div>
+                            <p style="font-weight:700; font-size:14px;" th:text="${r.username}">User</p>
+                            <p style="color:#bbb; font-size:11px; margin-top:1px;" th:text="${r.createdAt}">date</p>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:2px; flex-shrink:0;">
+                        <span th:each="i : ${#numbers.sequence(1, r.rating)}" style="color:#FFB703; font-size:16px;">★</span>
+                        <span th:if="${r.rating < 5}" th:each="i : ${#numbers.sequence(r.rating + 1, 5)}" style="color:#e8e0d8; font-size:16px;">★</span>
+                        <span class="fd" style="font-size:16px; font-weight:900; margin-left:4px;" th:text="${r.rating}">5</span>
+                    </div>
+                </div>
+                <p th:if="${r.comment != null and !r.comment.isEmpty()}" style="color:#555; font-size:13px; line-height:1.6;" th:text="${r.comment}">Comment</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-inner">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:24px; height:24px; background:#E63946; border-radius:6px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:white; font-size:10px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:16px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#444; font-size:12px;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+</body>
+</html>

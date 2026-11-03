@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Registration — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E63946; --yellow:#FFB703; --dark:#111111; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html, body { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#111; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+
+        .split { display:grid; grid-template-columns:1.05fr 1fr; min-height:100vh; }
+
+        /* ---- LEFT BRAND PANEL (gold vendor identity) ---- */
+        .brand {
+            position:relative; overflow:hidden; padding:56px 56px 48px;
+            display:flex; flex-direction:column; justify-content:space-between;
+            background:linear-gradient(150deg,#1a1400 0%,#251a00 50%,#0d0d00 100%);
+        }
+        .brand::before {
+            content:''; position:absolute; inset:0;
+            background-image:radial-gradient(rgba(255,183,3,0.06) 1.4px, transparent 1.4px);
+            background-size:24px 24px; pointer-events:none;
+        }
+        .orb { position:absolute; border-radius:50%; pointer-events:none; }
+        .orb-gold { width:400px; height:400px; top:-130px; right:-130px; background:radial-gradient(circle,rgba(255,183,3,0.28),transparent 65%); }
+        .orb-amber { width:300px; height:300px; bottom:-100px; left:-80px; background:radial-gradient(circle,rgba(255,140,0,0.12),transparent 65%); }
+
+        .brand-logo { display:inline-flex; align-items:center; gap:12px; position:relative; z-index:2; }
+        .brand-logo-icon { width:42px; height:42px; background:#FFB703; border-radius:11px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(255,183,3,0.4); }
+
+        .brand-hero { position:relative; z-index:2; }
+        .brand-tag { display:inline-flex; align-items:center; gap:8px; background:rgba(255,183,3,0.12); border:1px solid rgba(255,183,3,0.3); color:#FFB703; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:3px; padding:6px 14px; border-radius:999px; margin-bottom:22px; }
+        .brand-headline { color:white; font-size:clamp(40px,5vw,60px); font-weight:900; text-transform:uppercase; line-height:0.98; }
+        .brand-headline .accent { color:#FFB703; }
+        .brand-sub { color:#9a8f6f; font-size:15px; line-height:1.7; margin-top:18px; max-width:430px; }
+
+        .steps { margin-top:28px; position:relative; z-index:2; display:flex; flex-direction:column; gap:14px; }
+        .step { display:flex; align-items:center; gap:14px; }
+        .step-num { width:34px; height:34px; border-radius:10px; background:rgba(255,183,3,0.08); border:1px solid rgba(255,183,3,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .step p { color:#b8ad8a; font-size:14px; font-weight:500; }
+
+        .food-orb { position:absolute; height:auto; filter:drop-shadow(0 24px 50px rgba(0,0,0,0.6)); z-index:2; }
+        .food-1 { width:190px; bottom:90px; right:48px; transform:rotate(6deg); animation:float1 5s ease-in-out infinite; }
+        .food-2 { width:140px; bottom:40px; right:210px; transform:rotate(-8deg); animation:float2 6s ease-in-out infinite; }
+        @keyframes float1 { 0%,100%{transform:rotate(6deg) translateY(0)} 50%{transform:rotate(6deg) translateY(-16px)} }
+        @keyframes float2 { 0%,100%{transform:rotate(-8deg) translateY(0)} 50%{transform:rotate(-8deg) translateY(-12px)} }
+
+        .brand-foot { position:relative; z-index:2; color:#5a5230; font-size:12px; }
+
+        /* ---- RIGHT FORM PANEL (dark vendor card feel) ---- */
+        .form-side {
+            background:#161616;
+            background-image:radial-gradient(rgba(255,183,3,0.04) 1.3px, transparent 1.3px);
+            background-size:26px 26px;
+            display:flex; align-items:center; justify-content:center; padding:40px 24px;
+        }
+        .form-box { width:100%; max-width:410px; animation:slideIn .6s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes slideIn { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+        .form-label { display:block; font-size:13px; font-weight:600; color:#888; margin-bottom:6px; }
+        .input-wrap { position:relative; }
+        .input-wrap svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#555; pointer-events:none; transition:color .2s; }
+        .form-input { width:100%; border:1.5px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px 14px 12px 42px; font-size:14px; font-family:'Plus Jakarta Sans',sans-serif; outline:none; transition:border-color .2s, box-shadow .2s; background:rgba(255,255,255,0.05); color:white; }
+        .form-input::placeholder { color:#555; }
+        .form-input:focus { border-color:#FFB703; box-shadow:0 0 0 3px rgba(255,183,3,0.12); }
+        .input-wrap:focus-within svg { color:#FFB703; }
+        .submit-btn { width:100%; background:#FFB703; color:#111; font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; text-transform:uppercase; letter-spacing:1px; border:none; padding:14px; border-radius:999px; cursor:pointer; transition:background .2s, box-shadow .2s; margin-top:4px; }
+        .submit-btn:hover { background:#e6a500; box-shadow:0 8px 28px rgba(255,183,3,0.35); }
+        .divider { border:none; border-top:1px solid rgba(255,255,255,0.08); margin:22px 0; }
+        .info-box { background:rgba(255,183,3,0.07); border:1px solid rgba(255,183,3,0.18); border-radius:14px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start; margin-bottom:22px; }
+
+        @media(max-width:880px) {
+            .split { grid-template-columns:1fr; }
+            .brand { padding:40px 32px; min-height:auto; }
+            .food-orb { display:none; }
+            .brand-hero { padding:24px 0 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="split">
+
+    <!-- LEFT: VENDOR BRAND SHOWCASE -->
+    <div class="brand">
+        <div class="orb orb-gold"></div>
+        <div class="orb orb-amber"></div>
+
+        <img src="/images/food/kungpao.png" alt="" class="food-orb food-1">
+        <img src="/images/food/dumplings.png" alt="" class="food-orb food-2">
+
+        <div class="brand-logo">
+            <div class="brand-logo-icon"><span class="fd" style="color:#111; font-size:16px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:28px; font-weight:900; letter-spacing:3px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+
+        <div class="brand-hero">
+            <span class="brand-tag">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Vendor Application
+            </span>
+            <h1 class="brand-headline">Open your<br><span class="accent">stall on campus.</span></h1>
+            <p class="brand-sub">Reach hundreds of hungry students every day. Register your stall, get approved, and start selling.</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num"><span class="fd" style="color:#FFB703; font-size:16px; font-weight:900;">1</span></div>
+                    <p>Submit your vendor application</p>
+                </div>
+                <div class="step">
+                    <div class="step-num"><span class="fd" style="color:#FFB703; font-size:16px; font-weight:900;">2</span></div>
+                    <p>Admin team reviews and approves it</p>
+                </div>
+                <div class="step">
+                    <div class="step-num"><span class="fd" style="color:#FFB703; font-size:16px; font-weight:900;">3</span></div>
+                    <p>Add your menu and start selling</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="brand-foot">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+
+    <!-- RIGHT: VENDOR FORM -->
+    <div class="form-side">
+        <div class="form-box">
+            <h2 class="fd" style="font-size:34px; font-weight:900; text-transform:uppercase; color:white; margin-bottom:4px;">Open Your Stall</h2>
+            <p style="color:#777; font-size:14px; margin-bottom:24px;">Register as a food vendor. Your application will be reviewed by the admin team.</p>
+
+            <div class="info-box">
+                <svg width="18" height="18" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p style="color:#999; font-size:12.5px; line-height:1.7;">After submitting, the admin team will review your application. You can start selling once your stall is activated.</p>
+            </div>
+
+            <div th:if="${error}" style="background:rgba(230,57,70,0.1); border-left:4px solid #E63946; color:#fca5a5; padding:11px 14px; border-radius:10px; font-size:13px; font-weight:500; margin-bottom:18px;" th:text="${error}"></div>
+
+            <form method="post" th:action="@{/register-vendor}" style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <label class="form-label">Username</label>
+                    <div class="input-wrap">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <input type="text" name="username" class="form-input" required placeholder="Vendor login username">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Email <span style="color:#555; font-weight:400;">(optional)</span></label>
+                    <div class="input-wrap">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 7l9 6 9-6"/></svg>
+                        <input type="email" name="email" class="form-input" placeholder="vendor@example.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Password</label>
+                    <div class="input-wrap">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 018 0v4"/></svg>
+                        <input type="password" name="password" class="form-input" required placeholder="Create a strong password">
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Submit Application</button>
+            </form>
+
+            <hr class="divider">
+            <div style="display:flex; flex-direction:column; gap:8px; text-align:center;">
+                <p style="font-size:13px; color:#666;">Already a vendor? <a th:href="@{/login}" style="color:#FFB703; font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Sign in here</a></p>
+                <p style="font-size:13px; color:#666;">Registering as a student? <a th:href="@{/register}" style="color:#FFB703; font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Student sign up</a></p>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

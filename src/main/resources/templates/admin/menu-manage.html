@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Menu — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#141414;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        .v-nav { background:rgba(17,17,17,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:1200px; margin:0 auto; padding:0 28px; height:62px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:10px; }
+        .logo-icon { width:32px; height:32px; background:#FFB703; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+        .btn-ghost { padding:8px 16px; border:1px solid rgba(255,255,255,0.14); color:#bbb; border-radius:10px; font-size:13px; font-weight:600; transition:all .2s; display:inline-flex; align-items:center; gap:6px; cursor:pointer; background:none; }
+        .btn-ghost:hover { border-color:#FFB703; color:#FFB703; }
+        .wrap { max-width:1200px; margin:0 auto; padding:32px 28px 60px; flex:1 0 auto; width:100%; }
+        .panel { background:#1c1c1c; border:1px solid rgba(255,255,255,0.07); border-radius:18px; }
+        .panel-head { padding:16px 22px; border-bottom:1px solid rgba(255,255,255,0.07); }
+        .input { width:100%; background:rgba(255,255,255,0.05); border:1.5px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:white; font-size:13px; font-family:inherit; outline:none; transition:border-color .2s, box-shadow .2s; }
+        .input:focus { border-color:#FFB703; box-shadow:0 0 0 3px rgba(255,183,3,0.12); }
+        .input::placeholder { color:#666; }
+        .btn-gold { background:#FFB703; color:#111; font-family:'Barlow Condensed',sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; border:none; border-radius:999px; padding:10px 22px; font-size:16px; cursor:pointer; transition:background .2s; }
+        .btn-gold:hover { background:#e6a500; }
+        .btn-sm { font-size:12px; font-weight:600; padding:7px 12px; border-radius:8px; cursor:pointer; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.04); color:#ccc; transition:all .18s; }
+        .btn-sm:hover { border-color:#888; color:white; }
+        .btn-save { background:#FFB703; color:#111; border-color:#FFB703; font-weight:700; }
+        .btn-save:hover { background:#e6a500; }
+        .btn-danger { border-color:rgba(230,57,70,0.4); color:#fca5a5; }
+        .btn-danger:hover { background:rgba(230,57,70,0.12); border-color:#E63946; color:#fca5a5; }
+        .btn-green { border-color:rgba(45,198,83,0.4); color:#8ee6a8; }
+        .btn-green:hover { background:rgba(45,198,83,0.12); }
+        .tbl { width:100%; border-collapse:separate; border-spacing:0 10px; }
+        .tbl th { text-align:left; color:#777; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:0 14px; }
+        .row-card td { background:#1c1c1c; padding:12px 14px; vertical-align:middle; border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06); }
+        .row-card td:first-child { border-left:1px solid rgba(255,255,255,0.06); border-radius:14px 0 0 14px; }
+        .row-card td:last-child { border-right:1px solid rgba(255,255,255,0.06); border-radius:0 14px 14px 0; }
+        .badge-ok { background:rgba(45,198,83,0.15); color:#8ee6a8; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; }
+        .badge-no { background:rgba(120,120,120,0.18); color:#aaa; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; }
+        footer { background:#111; border-top:1px solid rgba(255,183,3,0.1); padding:22px 28px; }
+        .foot-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/admin}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:13px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:21px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Vendor</span></span>
+        </a>
+        <a th:href="@{/admin}" class="btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Dashboard
+        </a>
+    </div>
+</nav>
+
+<div class="wrap">
+    <span class="fd" style="color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Menu Management</span>
+    <h1 class="fd" style="font-size:clamp(30px,4vw,44px); font-weight:900; text-transform:uppercase; color:white; line-height:1; margin:2px 0 24px;">Manage Menu Items</h1>
+
+    <!-- Add new item -->
+    <div class="panel" style="margin-bottom:28px;">
+        <div class="panel-head">
+            <h2 class="fd" style="font-size:20px; font-weight:900; text-transform:uppercase; color:#FFB703;">Add New Item</h2>
+        </div>
+        <div style="padding:20px 22px;">
+            <form method="post" th:action="@{/admin/menu/add}" enctype="multipart/form-data" style="display:grid; grid-template-columns:1.5fr 1.5fr 1fr 1fr 1.5fr auto; gap:10px; align-items:end;">
+                <div><label style="display:block; font-size:12px; color:#888; margin-bottom:5px;">Name</label><input name="name" class="input" placeholder="Item name" required></div>
+                <div><label style="display:block; font-size:12px; color:#888; margin-bottom:5px;">Description</label><input name="description" class="input" placeholder="Description"></div>
+                <div><label style="display:block; font-size:12px; color:#888; margin-bottom:5px;">Price</label><input name="price" type="number" step="0.01" class="input" placeholder="0" required></div>
+                <div><label style="display:block; font-size:12px; color:#888; margin-bottom:5px;">Stock</label><input name="stock" type="number" class="input" value="0" required></div>
+                <div><label style="display:block; font-size:12px; color:#888; margin-bottom:5px;">Image</label><input name="imageFile" type="file" accept="image/*" class="input" style="padding:8px;"></div>
+                <button class="btn-gold" style="white-space:nowrap;">+ Add</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Daftar menu -->
+    <div style="overflow-x:auto;">
+        <table class="tbl">
+            <thead>
+            <tr><th>Image</th><th>Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${items}" class="row-card">
+                <form method="post" th:action="@{/admin/menu/edit}" enctype="multipart/form-data" style="display:contents;">
+                    <input type="hidden" name="id" th:value="${item.id}">
+                    <input type="hidden" name="imageUrl" th:value="${item.imageUrl}">
+                    <td>
+                        <img th:if="${item.imageUrl}" th:src="${item.imageUrl}" style="width:48px; height:48px; object-fit:cover; border-radius:10px; display:block;" alt="img">
+                        <input name="imageFile" type="file" accept="image/*" class="input" style="padding:5px; font-size:11px; margin-top:5px; width:130px;">
+                    </td>
+                    <td><input name="name" class="input" th:value="${item.name}" style="min-width:120px;"></td>
+                    <td><input name="description" class="input" th:value="${item.description}" style="min-width:140px;"></td>
+                    <td><input name="price" type="number" step="0.01" class="input" th:value="${item.price}" style="width:90px;"></td>
+                    <td><input name="stock" type="number" class="input" th:value="${item.stock}" style="width:70px;"></td>
+                    <td>
+                        <span th:if="${item.isAvailable}" class="badge-ok">Available</span>
+                        <span th:if="${!item.isAvailable}" class="badge-no">Sold Out</span>
+                    </td>
+                    <td>
+                        <button class="btn-sm btn-save">Save</button>
+                    </td>
+                </form>
+                <td>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        <div style="display:flex; gap:6px;">
+                            <form method="post" th:action="@{/admin/menu/toggle}">
+                                <input type="hidden" name="id" th:value="${item.id}">
+                                <button class="btn-sm">Toggle</button>
+                            </form>
+                            <form method="post" th:action="@{/admin/menu/delete}">
+                                <input type="hidden" name="id" th:value="${item.id}">
+                                <button class="btn-sm btn-danger">Delete</button>
+                            </form>
+                        </div>
+                        <form method="post" th:action="@{/admin/menu/restock}" style="display:flex; gap:6px;">
+                            <input type="hidden" name="id" th:value="${item.id}">
+                            <input type="number" name="qty" min="1" value="1" class="input" style="width:64px;">
+                            <button class="btn-sm btn-green">+Stock</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:24px; height:24px; background:#FFB703; border-radius:6px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:#111; font-size:10px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:16px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Vendor Portal</p>
+    </div>
+</footer>
+</body>
+</html>

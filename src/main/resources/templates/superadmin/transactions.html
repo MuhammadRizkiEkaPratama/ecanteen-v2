@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Transactions — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; --green:#2DC653; --blue:#4CC9F0; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#121212;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        body::before { content:''; position:fixed; top:-200px; right:-160px; width:520px; height:520px; background:radial-gradient(circle,rgba(255,183,3,0.07),transparent 65%); pointer-events:none; z-index:0; animation:drift1 24s ease-in-out infinite; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-110px,80px) scale(1.15)} }
+
+        /* NAV */
+        .v-nav { background:rgba(15,15,15,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:1200px; margin:0 auto; padding:0 30px; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:11px; }
+        .logo-icon { width:34px; height:34px; background:#FFB703; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+        .btn-ghost { padding:9px 18px; border:1px solid rgba(255,255,255,0.14); color:#bbb; border-radius:11px; font-size:13px; font-weight:600; transition:all .2s; display:inline-flex; align-items:center; gap:7px; }
+        .btn-ghost:hover { border-color:#FFB703; color:#FFB703; }
+
+        .wrap { max-width:1000px; margin:0 auto; padding:38px 30px 64px; flex:1 0 auto; width:100%; position:relative; z-index:1; }
+        .sec-label { color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase; display:block; margin-bottom:3px; }
+
+        /* ---- ORDER CARD (same structure as user order-history, dark theme) ---- */
+        .order-card {
+            background:#1b1b1b;
+            border:1px solid rgba(255,255,255,0.07);
+            border-radius:18px;
+            overflow:hidden;
+            margin-bottom:14px;
+            transition:transform .2s ease, box-shadow .2s ease;
+            animation:slideUp .45s ease both;
+        }
+        .order-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(0,0,0,.35); }
+        @keyframes slideUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+        .order-head {
+            padding:14px 20px;
+            background:rgba(255,255,255,0.03);
+            border-bottom:1px solid rgba(255,255,255,0.07);
+            display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+        }
+        .order-body { padding:16px 20px; display:flex; flex-direction:column; gap:14px; }
+
+        /* status badges */
+        .status-badge { font-size:10.5px; font-weight:700; padding:4px 10px; border-radius:999px; text-transform:uppercase; letter-spacing:0.5px; }
+        .b-PENDING    { background:rgba(255,183,3,0.15);   color:#FFB703; }
+        .b-PROCESSING { background:rgba(76,201,240,0.15);  color:#7dd3fc; }
+        .b-READY      { background:rgba(45,198,83,0.15);   color:#8ee6a8; }
+        .b-PICKED_UP  { background:rgba(150,150,150,0.15); color:#aaa; }
+        .b-CANCELLED  { background:rgba(230,57,70,0.15);   color:#fca5a5; }
+
+        .stall-divider { border-bottom:1px solid rgba(255,255,255,0.07); padding-bottom:14px; }
+
+        .item-line { display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:5px 0; }
+
+        .btn-detail { font-size:12px; font-weight:600; padding:7px 14px; border-radius:8px;
+            border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.04); color:#ccc; transition:all .18s; display:inline-block; }
+        .btn-detail:hover { border-color:#FFB703; color:#FFB703; }
+
+        .empty-state { background:#1b1b1b; border:2px dashed rgba(255,255,255,0.1); border-radius:20px; padding:64px 24px; text-align:center; }
+
+        footer { background:#0f0f0f; border-top:1px solid rgba(255,183,3,0.1); padding:24px 30px; position:relative; z-index:1; }
+        .foot-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/superadmin}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:14px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:22px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Admin</span></span>
+        </a>
+        <a th:href="@{/superadmin}" class="btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Dashboard
+        </a>
+    </div>
+</nav>
+
+<div class="wrap">
+    <span class="sec-label">Finance</span>
+    <h1 class="fd" style="font-size:clamp(30px,4vw,46px); font-weight:900; text-transform:uppercase; color:white; line-height:1; margin-bottom:28px;">
+        All <span style="color:#FFB703;">Transactions</span>
+    </h1>
+
+    <!-- Empty state -->
+    <div th:if="${ordersEmpty}" class="empty-state">
+        <svg width="40" height="40" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" viewBox="0 0 24 24" style="display:block; margin:0 auto 12px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        <p style="color:#666; font-size:14px;">No transactions on record yet.</p>
+    </div>
+
+    <!-- One card per checkout group -->
+    <div th:each="group, gStat : ${groupList}" class="order-card" th:style="'animation-delay:' + ${gStat.index * 0.07} + 's'">
+
+        <!-- Card header: checkout-level info -->
+        <div class="order-head">
+            <div>
+                <!-- Group id (= id of the first order in the group) -->
+                <p class="fd" style="font-size:20px; font-weight:900; text-transform:uppercase; color:white; line-height:1;">
+                    Checkout #<span th:text="${group[0].orderGroupId != null ? group[0].orderGroupId : group[0].id}">0</span>
+                </p>
+                <div style="display:flex; align-items:center; gap:10px; margin-top:4px; flex-wrap:wrap;">
+                    <!-- Username: taken from any order in the group (same user for all) -->
+                    <span style="display:inline-flex; align-items:center; gap:5px; color:#aaa; font-size:13px; font-weight:600;">
+                        <svg width="12" height="12" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <span th:text="${group[0].username}">user</span>
+                    </span>
+                    <span style="color:#555; font-size:12px;" th:text="${#temporals.format(group[0].createdAt, 'dd MMM yyyy, HH:mm')}">date</span>
+                    <!-- "N stalls" badge if multi-stall checkout -->
+                    <span th:if="${group.size() > 1}"
+                          style="display:inline-flex; align-items:center; gap:4px; background:#FFB703; color:#111; font-size:11px; font-weight:700; padding:2px 9px; border-radius:999px;">
+                        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
+                        <span th:text="${group.size()}">0</span> stalls
+                    </span>
+                </div>
+            </div>
+            <!-- Grand total across all stalls in this checkout -->
+            <div style="text-align:right;">
+                <p style="color:#666; font-size:11px; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:2px;">Grand Total</p>
+                <span class="fd" style="font-size:26px; font-weight:900; color:#FFB703;">¥<span th:text="${#aggregates.sum(group.![totalAmount])}">0</span></span>
+            </div>
+        </div>
+
+        <!-- Body: one section per stall order -->
+        <div class="order-body">
+            <div th:each="order, stat : ${group}"
+                 th:class="${stat.last} ? '' : 'stall-divider'">
+
+                <!-- Stall name + status badge + detail button -->
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="display:inline-flex; align-items:center; gap:5px; color:#e8e2d5; font-weight:700; font-size:14px;">
+                            <svg width="14" height="14" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
+                            <span th:text="${order.stallName != null ? order.stallName : 'Order #' + order.id}">Stall</span>
+                        </span>
+                        <span class="status-badge" th:classappend="'b-' + ${order.status}" th:text="${order.status}">STATUS</span>
+                    </div>
+                    <a th:href="@{/superadmin/transactions/{id}(id=${order.id})}" class="btn-detail">Detail</a>
+                </div>
+
+                <!-- Items for this stall order -->
+                <div th:each="item : ${itemsByOrder.get(order.id)}" class="item-line">
+                    <span style="color:#ccc; font-weight:500;" th:text="${item.itemName}">Item</span>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="color:#666; font-size:13px;">×<span th:text="${item.quantity}">1</span></span>
+                        <span class="fd" style="font-size:16px; font-weight:900; color:#e8e2d5;">¥<span th:text="${item.lineTotal}">0</span></span>
+                    </div>
+                </div>
+
+                <!-- Stall subtotal line -->
+                <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <span style="color:#555; font-size:12px; display:flex; align-items:center; gap:8px;">
+                        <span th:text="${order.paymentMethod}">-</span>
+                        <span th:if="${order.discountTotal != null and order.discountTotal > 0}"
+                              style="color:#8ee6a8; font-weight:600;">· Saved ¥<span th:text="${order.discountTotal}">0</span></span>
+                    </span>
+                    <span class="fd" style="font-size:18px; font-weight:900; color:white;">¥<span th:text="${order.totalAmount}">0</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <div style="display:flex; align-items:center; gap:9px;">
+            <div style="width:26px; height:26px; background:#FFB703; border-radius:7px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:#111; font-size:11px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:17px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Detail — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E63946; --yellow:#FFB703; --dark:#111111; --surface:#FFFAF5; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Inter',sans-serif; background:var(--surface); color:var(--dark); }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        nav { background:#111; position:sticky; top:0; z-index:50; border-bottom:1px solid rgba(255,255,255,0.06); }
+        .nav-inner { max-width:1200px; margin:0 auto; padding:0 24px; height:60px; display:flex; align-items:center; justify-content:space-between; }
+        .nav-logo { display:flex; align-items:center; gap:8px; }
+        .btn-nav { padding:8px 16px; color:#aaa; font-size:13px; font-weight:500; border-radius:10px; transition:background 0.2s, color 0.2s; display:inline-flex; align-items:center; gap:6px; }
+        .btn-nav:hover { background:rgba(255,255,255,0.08); color:white; }
+        .page-header { background:#111; padding:40px 24px 36px; }
+        .container { max-width:780px; margin:0 auto; padding:28px 24px 64px; display:flex; flex-direction:column; gap:16px; }
+        .section-card { background:white; border-radius:16px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.06); }
+        .section-head { background:#111; padding:14px 20px; }
+        .section-body { padding:20px 20px; }
+        .timeline-dot-active { width:14px; height:14px; background:#E63946; border-radius:50%; box-shadow:0 0 0 4px rgba(230,57,70,0.15); flex-shrink:0; margin-top:3px; }
+        .timeline-dot { width:10px; height:10px; background:#ddd; border-radius:50%; flex-shrink:0; margin-top:5px; margin-left:2px; }
+        .timeline-line { width:2px; background:#f0ebe3; flex:1; min-height:24px; margin:4px 0 4px 6px; }
+        .item-line { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0; border-bottom:1px solid #f5f0ea; }
+        .item-line:last-child { border-bottom:none; }
+        .review-btn { display:inline-flex; align-items:center; gap:5px; background:#FFB703; color:#111; font-size:12px; font-weight:700; padding:6px 14px; border-radius:999px; transition:background 0.2s; white-space:nowrap; }
+        .review-btn:hover { background:#e6a500; }
+        .cancel-btn { display:inline-flex; align-items:center; gap:6px; border:1.5px solid #fca5a5; color:#E63946; font-size:13px; font-weight:600; padding:9px 18px; border-radius:999px; background:white; cursor:pointer; transition:all 0.18s; }
+        .cancel-btn:hover { background:#fff0f0; border-color:#E63946; }
+
+        /* ---- Status badge (header, on dark bg) ---- */
+        .st-badge { display:inline-flex; align-items:center; gap:9px; font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; padding:9px 20px; border-radius:999px; border:1.5px solid; flex-shrink:0; }
+        .st-badge .dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+        .st-pending    { background:rgba(255,183,3,.12);  border-color:rgba(255,183,3,.5);  color:#FFB703; }
+        .st-pending .dot    { background:#FFB703; }
+        .st-processing { background:rgba(59,130,246,.16); border-color:rgba(59,130,246,.55); color:#93b8ff; }
+        .st-processing .dot { background:#3B82F6; animation:dotPulse 1.6s ease infinite; }
+        .st-ready      { background:rgba(45,198,83,.16);  border-color:rgba(45,198,83,.55); color:#5ce08a; }
+        .st-ready .dot      { background:#2DC653; animation:dotPulse 1.4s ease infinite; }
+        .st-pickedup   { background:rgba(148,163,184,.16);border-color:rgba(148,163,184,.5);color:#cbd5e1; }
+        .st-pickedup .dot   { background:#94a3b8; }
+        .st-cancelled  { background:rgba(230,57,70,.16);  border-color:rgba(230,57,70,.55); color:#fca5a5; }
+        .st-cancelled .dot  { background:#E63946; }
+        @keyframes dotPulse { 0%,100%{box-shadow:0 0 0 0 currentColor; opacity:1} 50%{box-shadow:0 0 0 4px transparent; opacity:.6} }
+
+        /* ---- "Order Completed" celebration card ---- */
+        .done-card { position:relative; overflow:hidden; background:linear-gradient(135deg,#0e2417,#13321f 60%,#0e2417); border:1px solid rgba(45,198,83,.3); border-radius:18px; padding:20px 24px; display:flex; align-items:center; gap:16px; box-shadow:0 8px 30px rgba(45,198,83,.08); animation:doneIn .5s ease both; }
+        .done-card::before { content:''; position:absolute; top:-50px; right:-40px; width:180px; height:180px; background:radial-gradient(circle,rgba(45,198,83,.2),transparent 70%); pointer-events:none; }
+        .done-icon { position:relative; z-index:1; width:50px; height:50px; flex-shrink:0; border-radius:50%; background:linear-gradient(135deg,#2DC653,#5ce08a); display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 6px rgba(45,198,83,.12), 0 6px 20px rgba(45,198,83,.4); animation:donePop .5s cubic-bezier(.175,.885,.32,1.4) .15s both; }
+        .done-title { color:#5ce08a; font-size:23px; font-weight:900; text-transform:uppercase; letter-spacing:1px; line-height:1; }
+        .done-sub { color:#9db8a6; font-size:13px; margin-top:6px; line-height:1.6; position:relative; z-index:1; }
+        .done-sub strong { color:#FFB703; font-weight:700; }
+        @keyframes doneIn { from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:translateY(0)} }
+        @keyframes donePop { 0%{transform:scale(0); opacity:0} 100%{transform:scale(1); opacity:1} }
+
+        footer { background:#111; border-top:1px solid rgba(255,255,255,0.06); padding:24px; }
+        .footer-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <a th:href="@{/menu}" class="nav-logo">
+            <div style="width:30px; height:30px; background:#E63946; border-radius:7px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:white; font-size:12px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:20px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </a>
+        <a th:href="@{/order/history}" class="btn-nav">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Order History
+        </a>
+    </div>
+</nav>
+
+<!-- Page header with status badge -->
+<div class="page-header">
+    <div style="max-width:780px; margin:0 auto; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+        <div>
+            <span class="fd" style="color:#FFB703; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:3px;">Order Detail</span>
+            <h1 class="fd" style="color:white; font-size:clamp(36px,5vw,60px); font-weight:900; text-transform:uppercase; margin-top:4px; line-height:1;">Order #<span th:text="${order.id}">0</span></h1>
+            <p th:if="${order.stallName}" style="color:#888; font-size:13px; margin-top:6px; display:flex; align-items:center; gap:6px;">
+                <svg width="13" height="13" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
+                <span th:text="${order.stallName}">Stall</span>
+            </p>
+        </div>
+        <span class="st-badge"
+              th:classappend="${order.status == 'PENDING' ? 'st-pending' :
+                              (order.status == 'PROCESSING' ? 'st-processing' :
+                              (order.status == 'READY' ? 'st-ready' :
+                              (order.status == 'PICKED_UP' ? 'st-pickedup' :
+                                                             'st-cancelled')))}">
+            <span class="dot"></span>
+            <span th:text="${order.status}">STATUS</span>
+        </span>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Cancel button -->
+    <div th:if="${order.status == 'PENDING'}">
+        <form method="post" th:action="@{/order/cancel}" onsubmit="return confirm('Cancel this order? Stock will be restored.')">
+            <input type="hidden" name="id" th:value="${order.id}">
+            <button type="submit" class="cancel-btn">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                Cancel This Order
+            </button>
+        </form>
+    </div>
+
+    <!-- Picked up success -->
+    <div th:if="${pickedUp}" class="done-card">
+        <div class="done-icon">
+            <svg width="26" height="26" fill="none" stroke="#0d1b12" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+        <div>
+            <p class="fd done-title">Order Completed</p>
+            <p class="done-sub">Your food was picked up. Tap <strong>Review</strong> next to any item to share your feedback.</p>
+        </div>
+    </div>
+
+    <!-- Status timeline -->
+    <div class="section-card">
+        <div class="section-head">
+            <h2 class="fd" style="color:white; font-size:18px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">Status Timeline</h2>
+        </div>
+        <div class="section-body">
+            <div th:each="log, iterStat : ${logs}" style="display:flex; gap:14px;">
+                <div style="display:flex; flex-direction:column; align-items:center; padding-bottom:4px;">
+                    <div th:if="${iterStat.last}" class="timeline-dot-active"></div>
+                    <div th:unless="${iterStat.last}" class="timeline-dot"></div>
+                    <div th:unless="${iterStat.last}" class="timeline-line"></div>
+                </div>
+                <div style="padding-bottom:20px; flex:1;">
+                    <p class="fd" style="font-size:18px; font-weight:900; text-transform:uppercase; line-height:1;" th:text="${log.status}">STATUS</p>
+                    <p style="color:#aaa; font-size:12px; margin-top:3px;" th:text="${#temporals.format(log.changedAt, 'dd MMM yyyy, HH:mm')}">time</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items -->
+    <div class="section-card">
+        <div class="section-head" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+            <h2 class="fd" style="color:white; font-size:18px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">Items Ordered</h2>
+            <span th:if="${order.stallName}" style="color:#FFB703; font-size:12px; font-weight:700; display:flex; align-items:center; gap:5px;">
+                <svg width="12" height="12" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
+                <span th:text="${order.stallName}">Stall</span>
+            </span>
+        </div>
+        <div class="section-body" style="padding-top:8px; padding-bottom:8px;">
+            <div th:each="item : ${items}" class="item-line">
+                <div style="flex:1; min-width:0;">
+                    <p class="fd" style="font-size:19px; font-weight:900; text-transform:uppercase; line-height:1.2; color:#111;" th:text="${item.itemName}">Item</p>
+                    <p style="color:#777; font-size:12px; margin-top:4px;">¥<span th:text="${item.unitPrice}">0</span> × <span th:text="${item.quantity}">1</span></p>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
+                    <span class="fd" style="font-size:20px; font-weight:900; color:#111;">¥<span th:text="${item.lineTotal}">0</span></span>
+                    <a th:if="${pickedUp}" th:href="@{'/menu/item/' + ${item.menuItemId}}" class="review-btn">⭐ Review</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment summary -->
+    <div class="section-card">
+        <div class="section-head">
+            <h2 class="fd" style="color:white; font-size:18px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">Payment Summary</h2>
+        </div>
+        <div class="section-body">
+            <div style="display:flex; justify-content:space-between; font-size:14px; padding:7px 0; border-bottom:1px solid #f5f0ea;">
+                <span style="color:#666;">Subtotal</span>
+                <span style="font-weight:700; color:#111;">¥<span th:text="${order.subtotal}">0</span></span>
+            </div>
+            <div th:if="${order.discountTotal > 0}" style="display:flex; justify-content:space-between; font-size:14px; padding:7px 0; border-bottom:1px solid #f5f0ea;">
+                <span style="color:#2DC653; font-weight:600;">Total Discount</span>
+                <span style="color:#2DC653; font-weight:700;">− ¥<span th:text="${order.discountTotal}">0</span></span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; padding:7px 0;">
+                <span style="color:#666;">Payment Method</span>
+                <span style="font-weight:700; color:#333;" th:text="${order.paymentMethod}">-</span>
+            </div>
+            <div style="border-top:2px dashed #e8e0d8; margin-top:10px; padding-top:14px; display:flex; justify-content:space-between; align-items:center;">
+                <span class="fd" style="font-size:22px; font-weight:900; text-transform:uppercase; color:#111;">Total Paid</span>
+                <span class="fd" style="font-size:34px; font-weight:900; color:#E63946;">¥<span th:text="${order.totalAmount}">0</span></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-inner">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:24px; height:24px; background:#E63946; border-radius:6px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:white; font-size:10px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:16px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#444; font-size:12px;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+</body>
+</html>

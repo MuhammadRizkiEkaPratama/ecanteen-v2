@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Report — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; --green:#2DC653; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#121212;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        body::before { content:''; position:fixed; top:-200px; right:-160px; width:520px; height:520px; background:radial-gradient(circle,rgba(255,183,3,0.07),transparent 65%); pointer-events:none; z-index:0; animation:drift1 24s ease-in-out infinite; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-110px,80px) scale(1.15)} }
+        .v-nav { background:rgba(15,15,15,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:1000px; margin:0 auto; padding:0 30px; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:11px; }
+        .logo-icon { width:34px; height:34px; background:#FFB703; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+        .btn-ghost { padding:9px 18px; border:1px solid rgba(255,255,255,0.14); color:#bbb; border-radius:11px; font-size:13px; font-weight:600; transition:all .2s; display:inline-flex; align-items:center; gap:7px; }
+        .btn-ghost:hover { border-color:#FFB703; color:#FFB703; }
+        .wrap { max-width:1000px; margin:0 auto; padding:38px 30px 64px; flex:1 0 auto; width:100%; position:relative; z-index:1; }
+
+        .kpi-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:28px; }
+        .kpi-card { background:#1b1b1b; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:26px; }
+        .kpi-ic { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+
+        .panel { background:#1b1b1b; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden; }
+        .panel-head { padding:18px 22px; border-bottom:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:10px; }
+        .tbl { width:100%; border-collapse:collapse; }
+        .tbl th { text-align:left; color:#777; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:12px 20px; border-bottom:1px solid rgba(255,255,255,0.07); }
+        .tbl td { padding:13px 20px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px; }
+        .tbl tr:last-child td { border-bottom:none; }
+
+        footer { background:#0f0f0f; border-top:1px solid rgba(255,183,3,0.1); padding:24px 30px; position:relative; z-index:1; }
+        .foot-inner { max-width:1000px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        @media(max-width:560px){ .kpi-row{grid-template-columns:1fr;} }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/superadmin}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:14px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:22px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Admin</span></span>
+        </a>
+        <a th:href="@{/superadmin}" class="btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Dashboard
+        </a>
+    </div>
+</nav>
+
+<div class="wrap">
+    <span style="color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase; display:block; margin-bottom:3px;">Finance</span>
+    <h1 class="fd" style="font-size:clamp(30px,4vw,46px); font-weight:900; text-transform:uppercase; color:white; line-height:1; margin-bottom:28px;">
+        Sales <span style="color:#FFB703;">Report</span>
+    </h1>
+
+    <!-- Totals -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-ic" style="background:rgba(76,201,240,0.12);">
+                <svg width="24" height="24" fill="none" stroke="#4CC9F0" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <div class="fd" style="font-size:48px; font-weight:900; color:white; line-height:1;" th:text="${total != null ? total.orderCount : 0}">0</div>
+            <p style="color:#888; font-size:13px; margin-top:6px;">Total orders (all stalls)</p>
+        </div>
+        <div class="kpi-card" style="background:linear-gradient(135deg,#1a1700,#161200); border-color:rgba(255,183,3,0.18);">
+            <div class="kpi-ic" style="background:rgba(255,183,3,0.12);">
+                <svg width="24" height="24" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 9v1m0-10c1.11 0 2.08.402 2.599 1M9.401 15c.519.598 1.489 1 2.599 1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="fd" style="font-size:36px; font-weight:900; color:#FFB703; line-height:1;">¥<span th:text="${total != null ? total.revenue : 0}">0</span></div>
+            <p style="color:#9a8f6f; font-size:13px; margin-top:6px;">Total gross revenue</p>
+        </div>
+    </div>
+
+    <!-- Per stall breakdown -->
+    <div class="panel">
+        <div class="panel-head">
+            <svg width="18" height="18" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
+            <h2 class="fd" style="font-size:20px; font-weight:900; text-transform:uppercase; color:white;">Breakdown by Stall</h2>
+        </div>
+        <table class="tbl">
+            <thead>
+            <tr><th>Stall</th><th>Orders</th><th>Gross Revenue</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${perStall}">
+                <td style="color:white; font-weight:600;" th:text="${s.stallName}">Stall</td>
+                <td style="color:#aaa;" th:text="${s.orderCount}">0</td>
+                <td><span class="fd" style="font-size:17px; font-weight:900; color:#FFB703;">¥<span th:text="${s.revenue}">0</span></span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <div style="display:flex; align-items:center; gap:9px;">
+            <div style="width:26px; height:26px; background:#FFB703; border-radius:7px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:#111; font-size:11px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:17px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+</body>
+</html>

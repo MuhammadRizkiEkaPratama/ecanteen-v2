@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Logs — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#121212;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        body::before { content:''; position:fixed; top:-200px; right:-160px; width:520px; height:520px; background:radial-gradient(circle,rgba(255,183,3,0.07),transparent 65%); pointer-events:none; z-index:0; animation:drift1 24s ease-in-out infinite; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-110px,80px) scale(1.15)} }
+        .v-nav { background:rgba(15,15,15,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:1140px; margin:0 auto; padding:0 30px; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:11px; }
+        .logo-icon { width:34px; height:34px; background:#FFB703; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+        .btn-ghost { padding:9px 18px; border:1px solid rgba(255,255,255,0.14); color:#bbb; border-radius:11px; font-size:13px; font-weight:600; transition:all .2s; display:inline-flex; align-items:center; gap:7px; }
+        .btn-ghost:hover { border-color:#FFB703; color:#FFB703; }
+        .wrap { max-width:1140px; margin:0 auto; padding:38px 30px 64px; flex:1 0 auto; width:100%; position:relative; z-index:1; }
+
+        .log-panel { background:#1b1b1b; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden; }
+        .log-row { display:grid; grid-template-columns:160px 140px 200px 1fr; gap:16px; padding:12px 20px; border-bottom:1px solid rgba(255,255,255,0.045); align-items:center; font-size:13px; transition:background .15s; }
+        .log-row:last-child { border-bottom:none; }
+        .log-row:hover { background:rgba(255,255,255,0.02); }
+        .log-head { background:rgba(255,255,255,0.03); }
+        .log-head span { color:#777; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+
+        .action-tag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px; text-transform:uppercase; letter-spacing:0.4px; font-family:'Barlow Condensed',sans-serif; }
+        .tag-login    { background:rgba(76,201,240,0.1);  color:#7dd3fc; }
+        .tag-order    { background:rgba(255,183,3,0.1);   color:#FFB703; }
+        .tag-register { background:rgba(45,198,83,0.1);   color:#8ee6a8; }
+        .tag-delete   { background:rgba(230,57,70,0.1);   color:#fca5a5; }
+        .tag-update   { background:rgba(168,85,247,0.1);  color:#c4b5fd; }
+        .tag-default  { background:rgba(255,255,255,0.07); color:#888; }
+
+        footer { background:#0f0f0f; border-top:1px solid rgba(255,183,3,0.1); padding:24px 30px; position:relative; z-index:1; }
+        .foot-inner { max-width:1140px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        @media(max-width:700px){ .log-row{ grid-template-columns:1fr 1fr; } }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/superadmin}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:14px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:22px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Admin</span></span>
+        </a>
+        <a th:href="@{/superadmin}" class="btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Dashboard
+        </a>
+    </div>
+</nav>
+
+<div class="wrap">
+    <span style="color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase; display:block; margin-bottom:3px;">Audit</span>
+    <h1 class="fd" style="font-size:clamp(30px,4vw,46px); font-weight:900; text-transform:uppercase; color:white; line-height:1; margin-bottom:6px;">
+        Activity <span style="color:#FFB703;">Logs</span>
+    </h1>
+    <p style="color:#666; font-size:13.5px; margin-bottom:26px;">Last 100 system events — most recent first.</p>
+
+    <div class="log-panel">
+        <div class="log-row log-head">
+            <span>Timestamp</span>
+            <span>User</span>
+            <span>Action</span>
+            <span>Detail</span>
+        </div>
+        <div th:each="log : ${logs}" class="log-row">
+            <span style="color:#666; font-size:12px; font-variant-numeric:tabular-nums;"
+                  th:text="${#temporals.format(log.createdAt, 'dd MMM yyyy HH:mm')}">-</span>
+            <span style="color:#ccc; font-weight:600;" th:text="${log.username}">-</span>
+            <span>
+                <span th:classappend="${log.action != null and #strings.containsIgnoreCase(log.action,'login')}    ? 'action-tag tag-login'    :
+                                      (${#strings.containsIgnoreCase(log.action,'order')}   ? 'action-tag tag-order'    :
+                                      (${#strings.containsIgnoreCase(log.action,'register')} ? 'action-tag tag-register' :
+                                      (${#strings.containsIgnoreCase(log.action,'delete')}  ? 'action-tag tag-delete'   :
+                                      (${#strings.containsIgnoreCase(log.action,'update')}  ? 'action-tag tag-update'   :
+                                       'action-tag tag-default'))))"
+                      th:text="${log.action}">ACTION</span>
+            </span>
+            <span style="color:#888; font-size:12.5px;" th:text="${log.detail}">-</span>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <div style="display:flex; align-items:center; gap:9px;">
+            <div style="width:26px; height:26px; background:#FFB703; border-radius:7px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:#111; font-size:11px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:17px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+</body>
+</html>

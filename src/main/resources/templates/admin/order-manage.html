@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#141414;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        .v-nav { background:rgba(17,17,17,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:1100px; margin:0 auto; padding:0 28px; height:62px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:10px; }
+        .logo-icon { width:32px; height:32px; background:#FFB703; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+        .btn-ghost { padding:8px 16px; border:1px solid rgba(255,255,255,0.14); color:#bbb; border-radius:10px; font-size:13px; font-weight:600; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
+        .btn-ghost:hover { border-color:#FFB703; color:#FFB703; }
+        .wrap { max-width:1100px; margin:0 auto; padding:32px 28px 60px; flex:1 0 auto; width:100%; }
+        .chip { padding:8px 16px; border-radius:999px; font-size:12px; font-weight:700; border:1.5px solid rgba(255,255,255,0.12); color:#bbb; transition:all .18s; background:#1c1c1c; }
+        .chip:hover { border-color:#FFB703; color:#FFB703; }
+        .chip.active { background:#FFB703; color:#111; border-color:#FFB703; }
+        .tbl { width:100%; border-collapse:separate; border-spacing:0 10px; }
+        .tbl th { text-align:left; color:#777; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:0 16px; }
+        .row-card td { background:#1c1c1c; padding:14px 16px; vertical-align:middle; border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06); }
+        .row-card td:first-child { border-left:1px solid rgba(255,255,255,0.06); border-radius:14px 0 0 14px; }
+        .row-card td:last-child { border-right:1px solid rgba(255,255,255,0.06); border-radius:0 14px 14px 0; }
+        .badge { font-size:11px; font-weight:700; padding:5px 12px; border-radius:999px; text-transform:uppercase; letter-spacing:0.5px; }
+        .b-PENDING { background:rgba(255,183,3,0.15); color:#FFB703; }
+        .b-PROCESSING { background:rgba(59,130,246,0.15); color:#93c5fd; }
+        .b-READY { background:rgba(45,198,83,0.15); color:#8ee6a8; }
+        .b-PICKED_UP { background:rgba(150,150,150,0.18); color:#bbb; }
+        .b-CANCELLED { background:rgba(230,57,70,0.15); color:#fca5a5; }
+        .btn-sm { font-size:12px; font-weight:600; padding:8px 14px; border-radius:8px; cursor:pointer; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.04); color:#ccc; transition:all .18s; display:inline-flex; align-items:center; gap:5px; }
+        .btn-sm:hover { border-color:#888; color:white; }
+        .btn-adv { background:#FFB703; color:#111; border-color:#FFB703; font-weight:700; }
+        .btn-adv:hover { background:#e6a500; }
+        .btn-adv:disabled { background:#333; color:#666; border-color:#333; cursor:not-allowed; }
+        footer { background:#111; border-top:1px solid rgba(255,183,3,0.1); padding:22px 28px; }
+        .foot-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/admin}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:13px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:21px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Vendor</span></span>
+        </a>
+        <a th:href="@{/admin}" class="btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Dashboard
+        </a>
+    </div>
+</nav>
+
+<div class="wrap">
+    <span class="fd" style="color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Incoming Orders</span>
+    <h1 class="fd" style="font-size:clamp(30px,4vw,44px); font-weight:900; text-transform:uppercase; color:white; line-height:1; margin:2px 0 22px;">Manage Orders</h1>
+
+    <!-- filter -->
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;">
+        <a th:href="@{/admin/orders}" class="chip" th:classappend="${status == null} ? ' active' : ''">All</a>
+        <a th:href="@{/admin/orders(status='PENDING')}" class="chip" th:classappend="${status == 'PENDING'} ? ' active' : ''">Pending</a>
+        <a th:href="@{/admin/orders(status='PROCESSING')}" class="chip" th:classappend="${status == 'PROCESSING'} ? ' active' : ''">Processing</a>
+        <a th:href="@{/admin/orders(status='READY')}" class="chip" th:classappend="${status == 'READY'} ? ' active' : ''">Ready</a>
+        <a th:href="@{/admin/orders(status='PICKED_UP')}" class="chip" th:classappend="${status == 'PICKED_UP'} ? ' active' : ''">Picked Up</a>
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table class="tbl">
+            <thead>
+            <tr><th>#</th><th>User</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${orders}" class="row-card">
+                <td><span class="fd" style="font-size:18px; font-weight:900; color:white;">#<span th:text="${order.id}">0</span></span></td>
+                <td style="color:#ccc; font-weight:600;" th:text="${order.username}">-</td>
+                <td><span class="fd" style="font-size:18px; font-weight:900; color:#FFB703;">¥<span th:text="${order.totalAmount}">0</span></span></td>
+                <td style="color:#999; font-size:13px;" th:text="${order.paymentMethod}">-</td>
+                <td><span class="badge" th:classappend="'b-' + ${order.status}" th:text="${order.status}">PENDING</span></td>
+                <td>
+                    <div style="display:flex; gap:6px;">
+                        <a th:href="@{'/admin/orders/' + ${order.id}}" class="btn-sm">Detail</a>
+                        <form method="post" th:action="@{/admin/orders/advance}">
+                            <input type="hidden" name="id" th:value="${order.id}">
+                            <button class="btn-sm btn-adv" th:disabled="${order.status == 'PICKED_UP'}">Advance</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:24px; height:24px; background:#FFB703; border-radius:6px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:#111; font-size:10px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:16px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Vendor Portal</p>
+    </div>
+</footer>
+</body>
+</html>

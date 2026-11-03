@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Portal — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#141414;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        body::before { content:''; position:fixed; top:-200px; right:-160px; width:480px; height:480px; background:radial-gradient(circle,rgba(255,183,3,0.07),transparent 65%); pointer-events:none; z-index:0; animation:drift1 24s ease-in-out infinite; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-90px,70px) scale(1.15)} }
+        .v-nav { background:rgba(17,17,17,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:640px; margin:0 auto; padding:0 28px; height:62px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:10px; }
+        .logo-icon { width:32px; height:32px; background:#FFB703; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+        .btn-gold { background:#FFB703; color:#111; font-weight:700; padding:8px 16px; border-radius:10px; font-size:13px; transition:background .2s; }
+        .btn-gold:hover { background:#e6a500; }
+        .wrap { max-width:640px; margin:0 auto; padding:36px 28px 60px; flex:1 0 auto; width:100%; position:relative; z-index:1; }
+        .panel { background:#1c1c1c; border:1px solid rgba(255,255,255,0.07); border-radius:18px; }
+        .panel-head { padding:16px 22px; border-bottom:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .input { width:100%; background:rgba(255,255,255,0.05); border:1.5px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px 14px; color:white; font-size:14px; font-family:inherit; outline:none; transition:border-color .2s, box-shadow .2s; }
+        .input:focus { border-color:#FFB703; box-shadow:0 0 0 3px rgba(255,183,3,0.12); }
+        .input::placeholder { color:#666; }
+        .form-label { display:block; font-size:13px; font-weight:600; color:#aaa; margin-bottom:6px; }
+        .btn-submit { width:100%; background:#FFB703; color:#111; font-family:'Barlow Condensed',sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:1px; border:none; border-radius:999px; padding:14px; font-size:20px; cursor:pointer; transition:background .2s, box-shadow .2s; }
+        .btn-submit:hover { background:#e6a500; box-shadow:0 8px 24px rgba(255,183,3,0.3); }
+        .alert { border-radius:14px; padding:14px 18px; font-size:13.5px; line-height:1.6; margin-bottom:16px; }
+        .alert-info { background:rgba(255,183,3,0.08); border:1px solid rgba(255,183,3,0.22); color:#d8c89a; }
+        .alert-success { background:rgba(45,198,83,0.1); border:1px solid rgba(45,198,83,0.3); color:#8ee6a8; }
+        .alert-danger { background:rgba(230,57,70,0.1); border:1px solid rgba(230,57,70,0.3); color:#fca5a5; }
+        .pill { font-size:11px; font-weight:700; padding:4px 11px; border-radius:999px; text-transform:uppercase; letter-spacing:0.5px; }
+        footer { background:#111; border-top:1px solid rgba(255,183,3,0.1); padding:22px 28px; position:relative; z-index:1; }
+        .foot-inner { max-width:640px; margin:0 auto; display:flex; align-items:center; justify-content:center; }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/vendor}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:13px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:21px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Vendor</span></span>
+        </a>
+        <a th:href="@{/logout}" class="btn-gold">Sign Out</a>
+    </div>
+</nav>
+
+<div class="wrap">
+    <span class="fd" style="color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Vendor Portal</span>
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:2px 0 24px;">
+        <h1 class="fd" style="font-size:clamp(30px,4vw,44px); font-weight:900; text-transform:uppercase; color:white; line-height:1;">Hello, <span style="color:#FFB703;" th:text="${username}">vendor</span></h1>
+        <span class="pill" style="background:rgba(150,150,150,0.2); color:#bbb;">Vendor (Pending)</span>
+    </div>
+
+    <!-- flash messages -->
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <!-- Waiting for approval -->
+    <div th:if="${vendorApp != null and vendorApp.status == 'PENDING'}" class="alert alert-info">
+        <strong>Awaiting Approval</strong><br>
+        Your application for <strong th:text="${vendorApp.stallName}">Stall</strong> is being reviewed by the administrator. Please wait.
+    </div>
+
+    <!-- Approved -->
+    <div th:if="${vendorApp != null and vendorApp.status == 'APPROVED'}" class="alert alert-success">
+        <strong>Application Approved!</strong><br>
+        Congratulations — your stall has been approved. You will be redirected to the vendor dashboard on your next request,
+        or click <a th:href="@{/admin}" style="color:#FFB703; font-weight:700;">here</a> to go there now.
+    </div>
+
+    <!-- Application form -->
+    <div th:if="${vendorApp == null or vendorApp.status == 'REJECTED'}" class="panel">
+        <div class="panel-head">
+            <h2 class="fd" style="font-size:20px; font-weight:900; text-transform:uppercase; color:#FFB703;">Apply to Open a Stall</h2>
+            <span th:if="${vendorApp != null and vendorApp.status == 'REJECTED'}" class="pill" style="background:rgba(230,57,70,0.15); color:#fca5a5;">Application Rejected</span>
+        </div>
+
+        <!-- rejection reason -->
+        <div th:if="${vendorApp != null and vendorApp.status == 'REJECTED'}" style="background:rgba(230,57,70,0.08); border-bottom:1px solid rgba(230,57,70,0.2); padding:14px 22px;">
+            <p style="color:#fca5a5; font-size:13px;"><strong>Reason for rejection:</strong>
+                <span th:text="${vendorApp.rejectReason != null and vendorApp.rejectReason != '' ? vendorApp.rejectReason : '(no details provided)'}">-</span></p>
+            <p style="color:#888; font-size:12px; margin-top:4px;">You may re-apply with corrected details.</p>
+        </div>
+
+        <div style="padding:22px;">
+            <form method="post" th:action="@{/vendor/apply}" style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <label class="form-label">Stall Name <span style="color:#E63946;">*</span></label>
+                    <input name="stallName" class="input" required th:value="${vendorApp != null ? vendorApp.stallName : ''}" placeholder="Your stall name">
+                </div>
+                <div>
+                    <label class="form-label">Stall Description</label>
+                    <input name="stallDescription" class="input" th:value="${vendorApp != null ? vendorApp.stallDescription : ''}" placeholder="What do you sell?">
+                </div>
+                <div>
+                    <label class="form-label">Owner Name</label>
+                    <input name="ownerName" class="input" th:value="${vendorApp != null ? vendorApp.ownerName : ''}" placeholder="Full name">
+                </div>
+                <div>
+                    <label class="form-label">Phone Number</label>
+                    <input name="phone" class="input" th:value="${vendorApp != null ? vendorApp.phone : ''}" placeholder="08xxxxxxxxxx">
+                </div>
+                <button type="submit" class="btn-submit">Submit Application</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Vendor Portal</p>
+    </div>
+</footer>
+</body>
+</html>

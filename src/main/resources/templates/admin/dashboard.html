@@ -1,0 +1,237 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; --green:#2DC653; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#141414;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        body::before { content:''; position:fixed; top:-200px; right:-160px; width:500px; height:500px; background:radial-gradient(circle,rgba(255,183,3,0.07),transparent 65%); pointer-events:none; z-index:0; animation:drift1 24s ease-in-out infinite; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-110px,80px) scale(1.15)} }
+
+        .v-nav { background:rgba(17,17,17,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:1040px; margin:0 auto; padding:0 28px; height:62px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:10px; }
+        .logo-icon { width:32px; height:32px; background:#FFB703; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+        .btn-ghost { padding:8px 16px; border:1px solid rgba(255,255,255,0.14); color:#bbb; border-radius:10px; font-size:13px; font-weight:600; transition:all .2s; cursor:pointer; background:none; }
+        .btn-ghost:hover { border-color:#FFB703; color:#FFB703; }
+        .btn-gold { background:#FFB703; color:#111; font-weight:700; padding:8px 16px; border-radius:10px; font-size:13px; transition:background .2s; }
+        .btn-gold:hover { background:#e6a500; }
+        .wrap { max-width:1040px; margin:0 auto; padding:34px 28px 60px; flex:1 0 auto; width:100%; position:relative; z-index:1; }
+        .panel { background:#1c1c1c; border:1px solid rgba(255,255,255,0.07); border-radius:18px; }
+        .stat-card { padding:24px; border-radius:18px; position:relative; overflow:hidden; }
+        .charts { display:grid; grid-template-columns:1.5fr 1fr; gap:16px; margin-bottom:16px; }
+        .menu-link { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:#1c1c1c; border:1px solid rgba(255,255,255,0.07); border-radius:14px; transition:all .2s; }
+        .menu-link:hover { border-color:rgba(255,183,3,0.4); background:#211c10; transform:translateX(4px); }
+        .menu-link .ic { width:38px; height:38px; border-radius:10px; background:rgba(255,183,3,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        footer { background:#111; border-top:1px solid rgba(255,183,3,0.1); padding:22px 28px; position:relative; z-index:1; }
+        .foot-inner { max-width:1040px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        @media(max-width:820px){ .charts{grid-template-columns:1fr;} }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/admin}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:13px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:21px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Vendor</span></span>
+        </a>
+        <div style="display:flex; gap:8px;">
+            <a th:href="@{/profile}" class="btn-ghost">Profile</a>
+            <a th:href="@{/logout}" class="btn-gold">Sign Out</a>
+        </div>
+    </div>
+</nav>
+
+<div class="wrap">
+
+    <span class="fd" style="color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Vendor Dashboard</span>
+    <h1 class="fd" style="font-size:clamp(32px,4vw,46px); font-weight:900; text-transform:uppercase; color:white; line-height:1; margin:2px 0 24px;">
+        Welcome, <span style="color:#FFB703;" th:text="${username}">vendor</span>
+    </h1>
+
+    <!-- Summary cards -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div class="stat-card" style="background:linear-gradient(135deg,#2a1a00,#1a1206); border:1px solid rgba(255,183,3,0.22);">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <div style="width:48px; height:48px; border-radius:13px; background:rgba(255,183,3,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="24" height="24" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
+                </div>
+                <div>
+                    <div class="fd" style="font-size:38px; font-weight:900; color:white; line-height:1;" th:text="${pendingCount}">0</div>
+                    <small style="color:#9a8f6f; font-size:12px;">Pending orders to process</small>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#0d2216,#10180f); border:1px solid rgba(45,198,83,0.25);">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <div style="width:48px; height:48px; border-radius:13px; background:rgba(45,198,83,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="24" height="24" fill="none" stroke="#2DC653" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <div class="fd" style="font-size:38px; font-weight:900; color:white; line-height:1;">¥<span th:text="${todayRevenue}">0</span></div>
+                    <small style="color:#7a9a82; font-size:12px;">Revenue today</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts">
+        <div class="panel" style="padding:22px;">
+            <div style="display:flex; align-items:center; gap:9px; margin-bottom:2px;">
+                <span style="width:8px; height:8px; background:#FFB703; border-radius:50%;"></span>
+                <h2 class="fd" style="font-size:20px; font-weight:900; text-transform:uppercase; color:white;">Revenue — Last 7 Days</h2>
+            </div>
+            <p style="color:#777; font-size:12.5px; margin-bottom:16px;">Daily sales from your stall.</p>
+            <canvas id="revenueChart" height="150"></canvas>
+        </div>
+        <div class="panel" style="padding:22px;">
+            <div style="display:flex; align-items:center; gap:9px; margin-bottom:2px;">
+                <span style="width:8px; height:8px; background:#E63946; border-radius:50%;"></span>
+                <h2 class="fd" style="font-size:20px; font-weight:900; text-transform:uppercase; color:white;">Orders by Status</h2>
+            </div>
+            <p style="color:#777; font-size:12.5px; margin-bottom:16px;">Where your orders are right now.</p>
+            <canvas id="statusChart" height="180"></canvas>
+        </div>
+    </div>
+
+    <!-- Low stock alert -->
+    <div th:if="${lowStock != null and !lowStock.isEmpty()}" style="background:rgba(230,57,70,0.1); border:1px solid rgba(230,57,70,0.3); border-radius:14px; padding:14px 18px; margin-bottom:16px; display:flex; gap:12px; align-items:flex-start;">
+        <svg width="18" height="18" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16a2 2 0 001.73 3z"/></svg>
+        <p style="color:#fca5a5; font-size:13px; line-height:1.6;"><strong>Low stock (&le; 5):</strong>
+            <span th:each="it,iter : ${lowStock}"><span th:text="${it.name}">menu</span> (<span th:text="${it.stock}">0</span>)<span th:if="${!iter.last}">, </span></span>
+        </p>
+    </div>
+
+    <!-- Stall status -->
+    <div class="panel" style="padding:18px 22px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;" th:if="${stall != null}">
+        <div>
+            <p style="color:#888; font-size:13px;">Your stall</p>
+            <p class="fd" style="font-size:24px; font-weight:900; color:white; text-transform:uppercase;" th:text="${stall.name}">Stall</p>
+            <span th:if="${stall.isOpen}" style="display:inline-flex; align-items:center; gap:6px; color:#2DC653; font-size:12px; font-weight:700; margin-top:4px;">
+                <span style="width:7px; height:7px; background:#2DC653; border-radius:50%;"></span> OPEN
+            </span>
+            <span th:if="${!stall.isOpen}" style="display:inline-flex; align-items:center; gap:6px; color:#E63946; font-size:12px; font-weight:700; margin-top:4px;">
+                <span style="width:7px; height:7px; background:#E63946; border-radius:50%;"></span> CLOSED
+            </span>
+        </div>
+        <form method="post" th:action="@{/admin/stall/toggle-open}">
+            <button class="btn-ghost" th:text="${stall.isOpen ? 'Close Stall' : 'Open Stall'}">Toggle</button>
+        </form>
+    </div>
+
+    <!-- Management links -->
+    <div style="display:grid; gap:10px;">
+        <a th:href="@{/admin/menu}" class="menu-link">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <span class="ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></span>
+                <span style="color:#e8e2d5; font-weight:600; font-size:15px;">Manage Menu Items</span>
+            </div>
+            <svg width="18" height="18" fill="none" stroke="#666" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <a th:href="@{/admin/orders}" class="menu-link">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <span class="ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></span>
+                <span style="color:#e8e2d5; font-weight:600; font-size:15px;">Manage Orders</span>
+            </div>
+            <svg width="18" height="18" fill="none" stroke="#666" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <a th:href="@{/admin/discount}" class="menu-link">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <span class="ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><path stroke-linecap="round" d="M7 7h.01"/></svg></span>
+                <span style="color:#e8e2d5; font-weight:600; font-size:15px;">Set Stall Discount</span>
+            </div>
+            <svg width="18" height="18" fill="none" stroke="#666" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <a th:href="@{/admin/report}" class="menu-link">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <span class="ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></span>
+                <span style="color:#e8e2d5; font-weight:600; font-size:15px;">Sales Report</span>
+            </div>
+            <svg width="18" height="18" fill="none" stroke="#666" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <a th:href="@{/admin/reviews}" class="menu-link">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <span class="ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg></span>
+                <span style="color:#e8e2d5; font-weight:600; font-size:15px;">Customer Reviews</span>
+            </div>
+            <svg width="18" height="18" fill="none" stroke="#666" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+    </div>
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:24px; height:24px; background:#FFB703; border-radius:6px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:#111; font-size:10px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:16px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Vendor Portal</p>
+    </div>
+</footer>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const revLabels    = /*[[${revLabels}]]*/ [];
+    const revValues    = /*[[${revValues}]]*/ [];
+    const statusCounts = /*[[${statusCounts}]]*/ [];
+    /*]]>*/
+
+    const rupiah = (v) => '¥' + Number(v).toLocaleString('id-ID');
+    Chart.defaults.color = '#9a9a9a';
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
+    // Revenue trend — gold area line
+    const rc = document.getElementById('revenueChart').getContext('2d');
+    const grad = rc.createLinearGradient(0, 0, 0, 220);
+    grad.addColorStop(0, 'rgba(255,183,3,0.35)');
+    grad.addColorStop(1, 'rgba(255,183,3,0)');
+    new Chart(rc, {
+        type: 'line',
+        data: { labels: revLabels, datasets: [{
+            data: revValues, fill: true, backgroundColor: grad,
+            borderColor: '#FFB703', borderWidth: 2.5, tension: 0.4,
+            pointBackgroundColor: '#FFB703', pointRadius: 4, pointHoverRadius: 6
+        }]},
+        options: {
+            plugins: { legend: { display: false },
+                tooltip: { callbacks: { label: (c) => rupiah(c.parsed.y) } } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.06)' },
+                     ticks: { callback: (v) => '¥' + Number(v).toLocaleString('id-ID') } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Orders by status — doughnut
+    const sc = document.getElementById('statusChart').getContext('2d');
+    new Chart(sc, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pending', 'Processing', 'Ready', 'Picked up'],
+            datasets: [{
+                data: statusCounts,
+                backgroundColor: ['#FFB703', '#4CC9F0', '#2DC653', '#8d8d8d'],
+                borderColor: '#1c1c1c', borderWidth: 3
+            }]
+        },
+        options: {
+            cutout: '62%',
+            plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, boxWidth: 8 } } }
+        }
+    });
+</script>
+</body>
+</html>

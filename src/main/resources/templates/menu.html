@@ -1,0 +1,349 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E63946; --yellow:#FFB703; --dark:#111111; --surface:#FFF7EE; }
+        * { box-sizing:border-box; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:var(--dark); margin:0;
+            background-color:var(--surface);
+            background-image:radial-gradient(rgba(230,57,70,0.045) 1.3px, transparent 1.3px);
+            background-size:26px 26px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+
+        /* Sticky navbar */
+        .top-nav { position:sticky; top:0; z-index:50; background:rgba(17,17,17,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,0.06); }
+        .nav-link { position:relative; padding:8px 12px; color:#aaa; font-size:13px; font-weight:500; display:flex; align-items:center; gap:6px; border-radius:10px; transition:background 0.2s, color 0.2s; }
+        .nav-link:hover { background:rgba(255,255,255,0.08); color:white; }
+
+        /* ---- HERO ---- */
+        .hero {
+            position:relative; overflow:hidden; border-radius:28px;
+            background:linear-gradient(125deg,#1a1a1a 0%,#2a0a0a 55%,#1a1a1a 100%);
+            padding:40px 44px; margin-top:28px;
+            display:grid; grid-template-columns:1.4fr auto; gap:24px; align-items:center;
+        }
+        .hero::before { content:''; position:absolute; top:-80px; right:120px; width:300px; height:300px; background:radial-gradient(circle,rgba(230,57,70,0.25),transparent 65%); }
+        .hero::after  { content:''; position:absolute; bottom:-120px; left:20%; width:260px; height:260px; background:radial-gradient(circle,rgba(255,183,3,0.12),transparent 65%); }
+        .hero-dots { position:absolute; inset:0; background-image:radial-gradient(rgba(255,255,255,0.05) 1.3px, transparent 1.3px); background-size:22px 22px; pointer-events:none; }
+        .hero-img { position:relative; z-index:2; width:240px; height:auto; filter:drop-shadow(0 24px 50px rgba(230,57,70,0.45)); animation:spin-float 6s ease-in-out infinite; }
+        @keyframes spin-float { 0%,100%{transform:translateY(0) rotate(-4deg)} 50%{transform:translateY(-16px) rotate(4deg)} }
+
+        /* Stat pills */
+        .stat-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+        .stat { display:inline-flex; align-items:center; gap:9px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:10px 16px; border-radius:14px; }
+        .stat-num { font-size:20px; font-weight:900; color:white; line-height:1; }
+        .stat-lbl { font-size:11px; color:#999; font-weight:500; }
+
+        /* Ready notification */
+        .ready-banner { background:linear-gradient(135deg,#1a3320,#0d2216); border:1.5px solid rgba(45,198,83,0.4); border-radius:18px; }
+
+        /* Stall filter chips */
+        .stall-chip { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:999px; font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; transition:all 0.18s ease; border:2px solid #ece3d8; background:white; color:#555; }
+        .stall-chip:hover { transform:translateY(-2px); border-color:var(--red); color:var(--red); }
+        .stall-chip.active { background:var(--red); color:white; border-color:var(--red); box-shadow:0 6px 18px rgba(230,57,70,0.35); }
+
+        /* Stall section heading */
+        .stall-heading { border-left:5px solid var(--red); padding-left:16px; }
+
+        /* ---- FOOD CARD ---- */
+        .food-card { background:white; border-radius:20px; overflow:hidden; cursor:pointer; border:1px solid #f0e8dd;
+            transition:transform 0.28s cubic-bezier(.16,1,.3,1), box-shadow 0.28s ease; opacity:0; animation:cardIn .5s ease both; }
+        .food-card:hover { transform:translateY(-8px); box-shadow:0 22px 48px rgba(230,57,70,0.14), 0 8px 20px rgba(0,0,0,0.08); }
+        @keyframes cardIn { from{opacity:0;transform:translateY(20px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+        .card-img-wrap { position:relative; height:170px; overflow:hidden; background:#f5f0ea; }
+        .card-img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.5s ease; }
+        .food-card:hover .card-img { transform:scale(1.08); }
+        .card-img-grad { position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 45%); }
+
+        .btn-add { background:var(--red); color:white; border:none; border-radius:999px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:background 0.18s, box-shadow 0.18s; position:relative; overflow:hidden; }
+        .btn-add:hover { background:#c62d3a; box-shadow:0 6px 18px rgba(230,57,70,0.4); }
+
+        .eye-btn { width:40px; height:40px; border:2px solid #ece3d8; border-radius:999px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:border-color 0.2s, background 0.2s; }
+        .eye-btn:hover { border-color:var(--red); background:#fff0f0; }
+
+        .sold-out-overlay { position:absolute; inset:0; background:rgba(17,17,17,0.55); display:flex; align-items:center; justify-content:center; backdrop-filter:blur(1px); }
+
+        .scroll-x::-webkit-scrollbar { display:none; }
+        .scroll-x { scrollbar-width:none; -ms-overflow-style:none; }
+
+        @keyframes bell { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-15deg)} 40%{transform:rotate(15deg)} 60%{transform:rotate(-10deg)} 80%{transform:rotate(10deg)} }
+        @keyframes ripple { 0%{transform:scale(0);opacity:.5} 100%{transform:scale(4);opacity:0} }
+        .ripple-fx { position:absolute; border-radius:50%; width:18px; height:18px; background:rgba(255,255,255,.4); animation:ripple .65s ease forwards; pointer-events:none; }
+
+        /* ambient page orbs — slowly drifting */
+        body::before { content:''; position:fixed; top:-180px; right:-180px; width:520px; height:520px; background:radial-gradient(circle,rgba(230,57,70,0.06),transparent 65%); pointer-events:none; z-index:0; animation:drift1 22s ease-in-out infinite; }
+        body::after  { content:''; position:fixed; bottom:-200px; left:-120px; width:460px; height:460px; background:radial-gradient(circle,rgba(255,183,3,0.06),transparent 65%); pointer-events:none; z-index:0; animation:drift2 26s ease-in-out infinite; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-120px,90px) scale(1.15)} }
+        @keyframes drift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(140px,-80px) scale(1.2)} }
+
+        /* Animated carousel background — two bands moving opposite directions */
+        .bg-carousel { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+        .bg-food { position:absolute; opacity:0.07; filter:saturate(0); will-change:transform; }
+        /* TOP band: right -> left */
+        .bg-food.rl { animation:slideRL 32s linear infinite; }
+        .rl.a { width:150px; top:10%; animation-delay:0s; }
+        .rl.b { width:120px; top:14%; animation-delay:-11s; }
+        .rl.c { width:180px; top:8%;  animation-delay:-22s; }
+        /* BOTTOM band: left -> right */
+        .bg-food.lr { animation:slideLR 38s linear infinite; }
+        .lr.a { width:160px; top:62%; animation-delay:0s; }
+        .lr.b { width:130px; top:70%; animation-delay:-13s; }
+        .lr.c { width:190px; top:58%; animation-delay:-26s; }
+        @keyframes slideRL {
+            0%   { transform:translateX(0) rotate(0deg); left:calc(100vw + 220px); }
+            100% { transform:translateX(0) rotate(36deg); left:-240px; }
+        }
+        @keyframes slideLR {
+            0%   { transform:translateX(0) rotate(0deg); left:-240px; }
+            100% { transform:translateX(0) rotate(-36deg); left:calc(100vw + 220px); }
+        }
+
+        .wrap { max-width:1400px; margin:0 auto; padding:0 32px; position:relative; z-index:1; }
+        .food-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:22px; }
+
+        @media(max-width:1100px){ .food-grid{ grid-template-columns:repeat(3,1fr);} }
+        @media(max-width:760px){
+            .hero { grid-template-columns:1fr; padding:28px; }
+            .hero-img { display:none; }
+            .food-grid { grid-template-columns:repeat(2,1fr) !important; gap:14px; }
+        }
+        @media(max-width:460px){ .food-grid{ grid-template-columns:1fr !important;} }
+    </style>
+</head>
+<body>
+
+<!-- Animated carousel background: top band right->left, bottom band left->right -->
+<div class="bg-carousel">
+    <img src="/images/food/dumplings.png"   alt="" class="bg-food rl a">
+    <img src="/images/food/kungpao.png"     alt="" class="bg-food rl b">
+    <img src="/images/food/noodle-bowl.png" alt="" class="bg-food rl c">
+    <img src="/images/food/noodle-bowl.png" alt="" class="bg-food lr a">
+    <img src="/images/food/dumplings.png"   alt="" class="bg-food lr b">
+    <img src="/images/food/kungpao.png"     alt="" class="bg-food lr c">
+</div>
+
+<!-- NAVBAR -->
+<div class="top-nav">
+    <div style="max-width:1400px; margin:0 auto; padding:0 32px; height:62px; display:flex; align-items:center; gap:16px; justify-content:space-between;">
+        <a th:href="@{/menu}" style="display:flex; align-items:center; gap:9px; flex-shrink:0;">
+            <div style="width:32px; height:32px; background:#E63946; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                <span class="fd" style="color:white; font-size:13px; font-weight:900;">EC</span>
+            </div>
+            <span class="fd" style="color:white; font-size:21px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </a>
+
+        <form method="get" th:action="@{/menu}" style="flex:1; max-width:440px; display:flex; align-items:center; background:rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; border:1.5px solid rgba(255,255,255,0.1);">
+            <span style="padding:0 12px; color:#777;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+            </span>
+            <input name="keyword" th:value="${keyword}" placeholder="Search food, stalls..."
+                   style="flex:1; background:transparent; border:none; outline:none; color:white; font-size:13px; padding:10px 0; min-width:0;" autocomplete="off">
+            <input type="hidden" name="stallId" th:value="${selectedStallId}">
+        </form>
+
+        <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+            <a th:href="@{/cart}" class="nav-link">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </a>
+            <a th:href="@{/order/history}" class="nav-link">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </a>
+            <a th:href="@{/profile}" class="nav-link">
+                <div style="width:27px; height:27px; background:#E63946; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                    <span class="fd" style="color:white; font-size:12px; font-weight:900; text-transform:uppercase;" th:text="${#strings.substring(username,0,1)}">U</span>
+                </div>
+            </a>
+            <a th:href="@{/logout}" style="margin-left:4px; background:#E63946; color:white; font-size:13px; font-weight:700; padding:8px 18px; border-radius:999px; transition:background 0.2s;" onmouseover="this.style.background='#c62d3a'" onmouseout="this.style.background='#E63946'">Out</a>
+        </div>
+    </div>
+</div>
+
+<div class="wrap">
+
+    <!-- ========== HERO ========== -->
+    <div class="hero">
+        <div class="hero-dots"></div>
+        <div style="position:relative; z-index:2;">
+            <span style="display:inline-block; background:rgba(255,183,3,0.16); color:#FFB703; font-size:11px; font-weight:700; padding:5px 14px; border-radius:999px; text-transform:uppercase; letter-spacing:3px; margin-bottom:14px;">Today's Deal · Save up to 30%</span>
+            <h1 class="fd" style="font-size:clamp(34px,4.5vw,52px); font-weight:900; text-transform:uppercase; color:white; line-height:0.98; margin:0;">
+                Hello, <span style="color:#E63946;" th:text="${username}">User</span>
+            </h1>
+            <p style="color:#9a9a9a; font-size:15px; margin:14px 0 0; max-width:440px; line-height:1.6;">What are you craving today? Browse every stall on campus — discounts apply automatically at checkout.</p>
+
+            <div class="stat-row">
+                <span class="stat">
+                    <span style="width:34px; height:34px; background:rgba(230,57,70,0.18); border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                        <svg width="17" height="17" fill="none" stroke="#E63946" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </span>
+                    <span><span class="stat-num" th:text="${allStalls != null ? allStalls.size() : 0}">0</span><br><span class="stat-lbl">Stalls open</span></span>
+                </span>
+                <span class="stat">
+                    <span style="width:34px; height:34px; background:rgba(255,183,3,0.18); border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                        <svg width="17" height="17" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </span>
+                    <span><span class="stat-num">~5</span><br><span class="stat-lbl">Min pickup</span></span>
+                </span>
+                <span class="stat">
+                    <span style="width:34px; height:34px; background:rgba(45,198,83,0.18); border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                        <svg width="17" height="17" fill="none" stroke="#2DC653" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                    <span><span class="stat-num">Live</span><br><span class="stat-lbl">Order tracking</span></span>
+                </span>
+            </div>
+        </div>
+        <img src="/images/food/noodle-bowl.png" alt="" class="hero-img">
+    </div>
+
+    <!-- Ready notification -->
+    <div th:if="${readyCount > 0}" class="ready-banner" style="padding:14px 22px; margin-top:18px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:rgba(45,198,83,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center; animation:bell 1.5s ease infinite; flex-shrink:0;">
+                <svg width="18" height="18" fill="none" stroke="#2DC653" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            </div>
+            <div>
+                <p style="color:#2DC653; font-weight:700; font-size:14px; margin:0;">Your order is ready for pickup!</p>
+                <p style="color:#888; font-size:12px; margin:0;"><span th:text="${readyCount}">0</span> order(s) waiting at the stall.</p>
+            </div>
+        </div>
+        <a th:href="@{/order/history(status='READY')}" style="background:#2DC653; color:white; font-size:12px; font-weight:700; padding:9px 18px; border-radius:999px; white-space:nowrap;">View Orders</a>
+    </div>
+
+    <!-- Error -->
+    <div th:if="${error}" style="background:#fff0f0; border-left:4px solid #E63946; color:#c62d3a; padding:14px 16px; border-radius:10px; margin-top:18px; font-size:14px; font-weight:500;" th:text="${error}"></div>
+
+    <!-- ========== STALL FILTER ========== -->
+    <div style="margin:24px 0 8px;">
+        <div class="scroll-x" style="overflow-x:auto; padding:10px 2px 14px;">
+            <div style="display:flex; gap:10px; min-width:max-content;">
+                <a th:href="@{/menu}" class="stall-chip" th:classappend="${selectedStallId == null} ? ' active' : ''">All Stalls</a>
+                <a th:each="s : ${allStalls}" th:href="@{/menu(stallId=${s.id})}" class="stall-chip"
+                   th:classappend="${selectedStallId != null and selectedStallId == s.id} ? ' active' : ''" th:text="${s.name}">Stall</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== STALL SECTIONS ========== -->
+    <div th:each="stall : ${stalls}" style="margin-top:40px;">
+
+        <div class="stall-heading" style="margin-bottom:22px;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <h2 class="fd" style="font-size:30px; font-weight:900; text-transform:uppercase; margin:0;" th:text="${stall.name}">Stall</h2>
+                <span th:if="${!stall.isOpen}" style="background:#2a2a2a; color:#999; font-size:11px; font-weight:700; padding:4px 11px; border-radius:999px; text-transform:uppercase; letter-spacing:1px;">Closed</span>
+                <span th:if="${stall.discountPercent != null and stall.discountPercent > 0}" style="background:#FFB703; color:#111; font-size:11px; font-weight:800; padding:4px 11px; border-radius:999px; text-transform:uppercase; letter-spacing:0.5px;"><span th:text="${stall.discountPercent}">0</span>% OFF</span>
+                <span th:if="${stall.isOpen}" style="display:inline-flex; align-items:center; gap:5px; color:#2DC653; font-size:12px; font-weight:600;">
+                    <span style="width:7px; height:7px; background:#2DC653; border-radius:50%; display:inline-block;"></span> Open Now
+                </span>
+            </div>
+            <p style="color:#999; font-size:13px; margin:5px 0 0;" th:text="${stall.description}">desc</p>
+        </div>
+
+        <div class="food-grid" th:if="${itemsByStall.get(stall.id) != null and !#lists.isEmpty(itemsByStall.get(stall.id))}">
+            <div th:each="item : ${itemsByStall.get(stall.id)}" class="food-card">
+
+                <div class="card-img-wrap">
+                    <img th:if="${item.imageUrl}" th:src="${item.imageUrl}" class="card-img" alt="food">
+                    <!-- Real photo fallback instead of empty placeholder -->
+                    <img th:unless="${item.imageUrl}" th:src="|/images/food/food${item.id % 5 + 1}.jpg|" class="card-img" alt="food">
+                    <div class="card-img-grad"></div>
+
+                    <!-- Discount ribbon -->
+                    <div th:if="${stall.discountPercent != null and stall.discountPercent > 0}"
+                         style="position:absolute; top:12px; left:12px; background:#E63946; color:white; font-size:10px; font-weight:800; padding:5px 10px; border-radius:8px; text-transform:uppercase; letter-spacing:0.5px; box-shadow:0 4px 12px rgba(230,57,70,0.4);">
+                        <span th:text="${stall.discountPercent}">0</span>% OFF
+                    </div>
+                    <!-- Stock pill -->
+                    <div th:if="${item.orderable}" style="position:absolute; bottom:12px; right:12px; background:rgba(255,255,255,0.92); color:#444; font-size:10px; font-weight:700; padding:4px 10px; border-radius:999px;">
+                        <span th:text="${item.stock}">0</span> left
+                    </div>
+                    <!-- Sold out -->
+                    <div th:if="${!item.orderable}" class="sold-out-overlay">
+                        <span class="fd" style="background:#E63946; color:white; font-size:14px; font-weight:900; padding:7px 18px; border-radius:999px; letter-spacing:1px; text-transform:uppercase;">Sold Out</span>
+                    </div>
+                </div>
+
+                <div style="padding:16px;">
+                    <h3 class="fd" style="font-size:19px; font-weight:900; text-transform:uppercase; margin:0 0 4px; line-height:1.15;" th:text="${item.name}">Item</h3>
+                    <p style="color:#999; font-size:12px; margin:0 0 14px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:36px;" th:text="${item.description}">desc</p>
+
+                    <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;">
+                        <span class="fd" style="font-size:26px; font-weight:900; color:#E63946;">¥<span th:text="${item.price}">0</span></span>
+                    </div>
+
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <form th:if="${item.orderable and stall.isOpen}" method="post" th:action="@{/cart/add}" style="flex:1;">
+                            <input type="hidden" name="menuItemId" th:value="${item.id}">
+                            <button type="submit" class="btn-add" style="width:100%;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                Add to Cart
+                            </button>
+                        </form>
+                        <span th:if="${!item.orderable or !stall.isOpen}" style="flex:1; text-align:center; color:#bbb; font-size:12px; font-weight:600; padding:10px; background:#f6f3ee; border-radius:999px;">Unavailable</span>
+                        <a th:href="@{'/menu/item/' + ${item.id}}" class="eye-btn" title="View details & reviews">
+                            <svg width="15" height="15" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty stall -->
+        <div th:if="${itemsByStall.get(stall.id) == null or #lists.isEmpty(itemsByStall.get(stall.id))}"
+             style="border:2px dashed #ece3d8; border-radius:18px; padding:44px; text-align:center; color:#bbb; background:white;">
+            <svg width="40" height="40" fill="none" stroke="#ddd" stroke-width="1.2" viewBox="0 0 24 24" style="display:block; margin:0 auto 10px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+            <p style="font-size:13px; margin:0;">No items available at this stall right now.</p>
+        </div>
+    </div>
+
+    <!-- No results -->
+    <div th:if="${stalls == null or #lists.isEmpty(stalls)}"
+         style="background:white; border-radius:24px; padding:80px 24px; text-align:center; box-shadow:0 2px 16px rgba(0,0,0,0.06); margin:30px 0 48px;">
+        <div style="width:84px; height:84px; background:#f5f0ea; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            <svg width="38" height="38" fill="none" stroke="#bbb" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        </div>
+        <h3 class="fd" style="font-size:32px; font-weight:900; text-transform:uppercase; margin:0 0 8px;">No Results Found</h3>
+        <p style="color:#999; font-size:14px; margin:0 0 24px;">Try a different keyword or browse all stalls.</p>
+        <a th:href="@{/menu}" style="background:#E63946; color:white; font-size:14px; font-weight:600; padding:12px 28px; border-radius:999px; display:inline-block;">Clear Search</a>
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer style="background:#111; border-top:1px solid rgba(255,255,255,0.06); padding:28px 24px; margin-top:56px; position:relative; z-index:1;">
+    <div style="max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:26px; height:26px; background:#E63946; border-radius:7px; display:flex; align-items:center; justify-content:center;">
+                <span class="fd" style="color:white; font-size:11px; font-weight:900;">EC</span>
+            </div>
+            <span class="fd" style="color:white; font-size:17px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#555; font-size:12px; margin:0;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+
+<script>
+(function(){
+    var cards = document.querySelectorAll('.food-card');
+    cards.forEach(function(card, i){ card.style.animationDelay = (0.04 + (i % 8) * 0.06) + 's'; });
+
+    document.querySelectorAll('.btn-add').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            var r = document.createElement('span');
+            r.className = 'ripple-fx';
+            var rect = btn.getBoundingClientRect();
+            r.style.left = (e.clientX - rect.left - 9) + 'px';
+            r.style.top  = (e.clientY - rect.top  - 9) + 'px';
+            btn.appendChild(r);
+            setTimeout(function(){ r.remove(); }, 700);
+        });
+    });
+})();
+</script>
+
+</body>
+</html>

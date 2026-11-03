@@ -1,0 +1,241 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Center — E-Canteen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root { --gold:#FFB703; --red:#E63946; --green:#2DC653; --blue:#4CC9F0; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html { height:100%; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; color:#e8e2d5; min-height:100vh; display:flex; flex-direction:column;
+            background-color:#121212;
+            background-image:radial-gradient(rgba(255,183,3,0.05) 1.2px, transparent 1.2px); background-size:24px 24px; }
+        .fd { font-family:'Barlow Condensed',sans-serif; }
+        a { text-decoration:none; }
+        /* drifting ambient orbs for a richer backdrop */
+        body::before { content:''; position:fixed; top:-200px; right:-160px; width:520px; height:520px; background:radial-gradient(circle,rgba(255,183,3,0.07),transparent 65%); pointer-events:none; z-index:0; animation:drift1 24s ease-in-out infinite; }
+        body::after  { content:''; position:fixed; bottom:-220px; left:-140px; width:480px; height:480px; background:radial-gradient(circle,rgba(230,57,70,0.06),transparent 65%); pointer-events:none; z-index:0; animation:drift2 28s ease-in-out infinite; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-110px,80px) scale(1.15)} }
+        @keyframes drift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(130px,-70px) scale(1.2)} }
+
+        .v-nav { background:rgba(15,15,15,0.92); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,183,3,0.12); position:sticky; top:0; z-index:50; }
+        .v-nav-inner { max-width:1140px; margin:0 auto; padding:0 30px; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:11px; }
+        .logo-icon { width:34px; height:34px; background:#FFB703; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+        .btn-gold { background:#FFB703; color:#111; font-weight:700; padding:9px 18px; border-radius:11px; font-size:13px; transition:background .2s; }
+        .btn-gold:hover { background:#e6a500; }
+        .wrap { max-width:1140px; margin:0 auto; padding:38px 30px 64px; flex:1 0 auto; width:100%; position:relative; z-index:1; }
+
+        .kpi { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:26px; }
+        .kpi-card { background:#1b1b1b; border:1px solid rgba(255,255,255,0.07); border-radius:18px; padding:22px; position:relative; overflow:hidden; transition:transform .25s ease, border-color .25s ease; }
+        .kpi-card:hover { transform:translateY(-4px); border-color:rgba(255,183,3,0.35); }
+        .kpi-ic { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+        .kpi-num { font-size:40px; font-weight:900; color:white; line-height:1; }
+        .kpi-lbl { color:#8d8d8d; font-size:12.5px; margin-top:6px; }
+
+        .panel { background:#1b1b1b; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:24px; }
+        .panel-title { display:flex; align-items:center; gap:9px; margin-bottom:4px; }
+        .charts { display:grid; grid-template-columns:1.35fr 1fr; gap:16px; margin-bottom:26px; }
+
+        .ops-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+        .ops-card { background:#1b1b1b; border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:20px; transition:all .22s ease; }
+        .ops-card:hover { border-color:rgba(255,183,3,0.4); background:#211c10; transform:translateY(-4px); }
+        .ops-ic { width:40px; height:40px; border-radius:11px; background:rgba(255,183,3,0.12); display:flex; align-items:center; justify-content:center; margin-bottom:13px; }
+        .ops-card h3 { color:#e8e2d5; font-size:14.5px; font-weight:700; }
+        .ops-card p { color:#777; font-size:12px; margin-top:3px; line-height:1.45; }
+
+        footer { background:#0f0f0f; border-top:1px solid rgba(255,183,3,0.1); padding:24px 30px; position:relative; z-index:1; }
+        .foot-inner { max-width:1140px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        .sec-label { color:#FFB703; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
+
+        @media(max-width:980px){ .kpi{grid-template-columns:repeat(2,1fr);} .charts{grid-template-columns:1fr;} .ops-grid{grid-template-columns:repeat(2,1fr);} }
+        @media(max-width:560px){ .kpi{grid-template-columns:1fr;} .ops-grid{grid-template-columns:1fr;} }
+    </style>
+</head>
+<body>
+
+<nav class="v-nav">
+    <div class="v-nav-inner">
+        <a th:href="@{/superadmin}" class="logo">
+            <div class="logo-icon"><span class="fd" style="color:#111; font-size:14px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:22px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen <span style="color:#FFB703;">Admin</span></span>
+        </a>
+        <a th:href="@{/logout}" class="btn-gold">Sign Out</a>
+    </div>
+</nav>
+
+<div class="wrap">
+
+    <span class="sec-label">Control Center</span>
+    <h1 class="fd" style="font-size:clamp(32px,4vw,48px); font-weight:900; text-transform:uppercase; color:white; line-height:1; margin:3px 0 28px;">
+        Canteen <span style="color:#FFB703;">Overview</span>
+    </h1>
+
+    <!-- ===== KPI CARDS ===== -->
+    <div class="kpi">
+        <div class="kpi-card">
+            <div class="kpi-ic" style="background:rgba(76,201,240,0.14);">
+                <svg width="23" height="23" fill="none" stroke="#4CC9F0" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z"/></svg>
+            </div>
+            <div class="kpi-num" th:text="${totalUsers}">0</div>
+            <div class="kpi-lbl">Registered users</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-ic" style="background:rgba(255,183,3,0.14);">
+                <svg width="23" height="23" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"/></svg>
+            </div>
+            <div class="kpi-num" th:text="${totalStalls}">0</div>
+            <div class="kpi-lbl">Active stalls</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-ic" style="background:rgba(45,198,83,0.14);">
+                <svg width="23" height="23" fill="none" stroke="#2DC653" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 9v1m0-10c1.11 0 2.08.402 2.599 1M9.401 15c.519.598 1.489 1 2.599 1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="kpi-num" style="font-size:30px;">¥<span th:text="${totalRevenue}">0</span></div>
+            <div class="kpi-lbl">Total revenue</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-ic" style="background:rgba(230,57,70,0.14);">
+                <svg width="23" height="23" fill="none" stroke="#E63946" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            </div>
+            <div class="kpi-num" th:text="${ordersToday}">0</div>
+            <div class="kpi-lbl">Orders today</div>
+        </div>
+    </div>
+
+    <!-- ===== CHARTS ===== -->
+    <div class="charts">
+        <div class="panel">
+            <div class="panel-title">
+                <span style="width:8px; height:8px; background:#FFB703; border-radius:50%;"></span>
+                <h2 class="fd" style="font-size:21px; font-weight:900; text-transform:uppercase; color:white;">Revenue — Last 7 Days</h2>
+            </div>
+            <p style="color:#777; font-size:12.5px; margin-bottom:18px;">Daily canteen-wide sales across every stall.</p>
+            <canvas id="revenueChart" height="135"></canvas>
+        </div>
+        <div class="panel">
+            <div class="panel-title">
+                <span style="width:8px; height:8px; background:#E63946; border-radius:50%;"></span>
+                <h2 class="fd" style="font-size:21px; font-weight:900; text-transform:uppercase; color:white;">Revenue by Stall</h2>
+            </div>
+            <p style="color:#777; font-size:12.5px; margin-bottom:18px;">Which stalls bring in the most sales.</p>
+            <canvas id="stallChart" height="180"></canvas>
+        </div>
+    </div>
+
+    <!-- ===== OPERATIONS ===== -->
+    <span class="sec-label">Management</span>
+    <h2 class="fd" style="font-size:26px; font-weight:900; text-transform:uppercase; color:white; margin:4px 0 18px;">Operations</h2>
+    <div class="ops-grid">
+        <a th:href="@{/superadmin/vendors}" class="ops-card">
+            <div class="ops-ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+            <h3>Vendor Approvals</h3>
+            <p>Review and approve new stall applications.</p>
+        </a>
+        <a th:href="@{/superadmin/users}" class="ops-card">
+            <div class="ops-ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z"/></svg></div>
+            <h3>Manage Users</h3>
+            <p>Suspend, activate, or reset passwords.</p>
+        </a>
+        <a th:href="@{/superadmin/stalls}" class="ops-card">
+            <div class="ops-ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14"/></svg></div>
+            <h3>Manage Stalls</h3>
+            <p>Suspend or reactivate canteen stalls.</p>
+        </a>
+        <a th:href="@{/superadmin/discounts}" class="ops-card">
+            <div class="ops-ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><path stroke-linecap="round" d="M7 7h.01"/></svg></div>
+            <h3>Discounts</h3>
+            <p>Set global and per-stall discounts.</p>
+        </a>
+        <a th:href="@{/superadmin/transactions}" class="ops-card">
+            <div class="ops-ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg></div>
+            <h3>All Transactions</h3>
+            <p>Browse every order placed in the canteen.</p>
+        </a>
+        <a th:href="@{/superadmin/report}" class="ops-card">
+            <div class="ops-ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2"/></svg></div>
+            <h3>Sales Report</h3>
+            <p>Full breakdown of canteen revenue.</p>
+        </a>
+        <a th:href="@{/superadmin/reviews}" class="ops-card">
+            <div class="ops-ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></div>
+            <h3>Moderate Reviews</h3>
+            <p>Remove inappropriate customer reviews.</p>
+        </a>
+        <a th:href="@{/superadmin/logs}" class="ops-card">
+            <div class="ops-ic"><svg width="19" height="19" fill="none" stroke="#FFB703" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+            <h3>Activity Logs</h3>
+            <p>Audit every action taken in the system.</p>
+        </a>
+    </div>
+</div>
+
+<footer>
+    <div class="foot-inner">
+        <div style="display:flex; align-items:center; gap:9px;">
+            <div style="width:26px; height:26px; background:#FFB703; border-radius:7px; display:flex; align-items:center; justify-content:center;"><span class="fd" style="color:#111; font-size:11px; font-weight:900;">EC</span></div>
+            <span class="fd" style="color:white; font-size:17px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">E-Canteen</span>
+        </div>
+        <p style="color:#555; font-size:12px;">&copy; 2026 E-Canteen — Campus Digital Canteen System</p>
+    </div>
+</footer>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const revLabels   = /*[[${revLabels}]]*/ [];
+    const revValues   = /*[[${revValues}]]*/ [];
+    const stallLabels = /*[[${stallLabels}]]*/ [];
+    const stallValues = /*[[${stallValues}]]*/ [];
+    /*]]>*/
+
+    const rupiah = (v) => '¥' + Number(v).toLocaleString('id-ID');
+    Chart.defaults.color = '#9a9a9a';
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
+    // Revenue trend — soft gold area line
+    const rc = document.getElementById('revenueChart').getContext('2d');
+    const grad = rc.createLinearGradient(0, 0, 0, 240);
+    grad.addColorStop(0, 'rgba(255,183,3,0.35)');
+    grad.addColorStop(1, 'rgba(255,183,3,0)');
+    new Chart(rc, {
+        type: 'line',
+        data: { labels: revLabels, datasets: [{
+            data: revValues, fill: true, backgroundColor: grad,
+            borderColor: '#FFB703', borderWidth: 2.5, tension: 0.4,
+            pointBackgroundColor: '#FFB703', pointRadius: 4, pointHoverRadius: 6
+        }]},
+        options: {
+            plugins: { legend: { display: false },
+                tooltip: { callbacks: { label: (c) => rupiah(c.parsed.y) } } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.06)' },
+                     ticks: { callback: (v) => '¥' + Number(v).toLocaleString('id-ID') } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Revenue by stall — red bars
+    const sc = document.getElementById('stallChart').getContext('2d');
+    new Chart(sc, {
+        type: 'bar',
+        data: { labels: stallLabels, datasets: [{
+            data: stallValues, backgroundColor: '#E63946',
+            borderRadius: 8, maxBarThickness: 42
+        }]},
+        options: {
+            plugins: { legend: { display: false },
+                tooltip: { callbacks: { label: (c) => rupiah(c.parsed.y) } } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.06)' },
+                     ticks: { callback: (v) => '¥' + Number(v).toLocaleString('id-ID') } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+</body>
+</html>

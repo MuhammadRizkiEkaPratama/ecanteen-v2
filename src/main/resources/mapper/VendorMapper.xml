@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.canteen.mapper.VendorMapper">
+
+    <insert id="insertApplication" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO vendor_applications (user_id, stall_name, stall_description, owner_name, phone, status)
+        VALUES (#{userId}, #{stallName}, #{stallDescription}, #{ownerName}, #{phone}, 'PENDING')
+    </insert>
+
+    <select id="findLatestByUser" resultType="VendorApplication">
+        SELECT id, user_id, stall_name, stall_description, owner_name, phone, status, reject_reason, created_at
+        FROM vendor_applications
+        WHERE user_id = #{userId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="findPending" resultType="VendorApplication">
+        SELECT id, user_id, stall_name, stall_description, owner_name, phone, status, created_at
+        FROM vendor_applications
+        WHERE status = 'PENDING'
+        ORDER BY id
+    </select>
+
+    <select id="findById" resultType="VendorApplication">
+        SELECT id, user_id, stall_name, stall_description, owner_name, phone, status, created_at
+        FROM vendor_applications
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE vendor_applications
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <update id="rejectWithReason">
+        UPDATE vendor_applications
+        SET status = 'REJECTED', reject_reason = #{reason}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

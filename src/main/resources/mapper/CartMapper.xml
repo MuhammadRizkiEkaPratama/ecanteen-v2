@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.canteen.mapper.CartMapper">
+
+    <select id="findByUserAndItem" resultType="CartItem">
+        SELECT id, user_id, menu_item_id, quantity
+        FROM cart_items
+        WHERE user_id = #{userId} AND menu_item_id = #{menuItemId}
+    </select>
+
+    <insert id="insertCartItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cart_items (user_id, menu_item_id, quantity)
+        VALUES (#{userId}, #{menuItemId}, #{quantity})
+    </insert>
+
+    <update id="updateQuantity">
+        UPDATE cart_items
+        SET quantity = #{quantity}
+        WHERE id = #{id} AND user_id = #{userId}
+    </update>
+
+    <delete id="deleteCartItem">
+        DELETE FROM cart_items WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
+    <delete id="deleteByUser">
+        DELETE FROM cart_items WHERE user_id = #{userId}
+    </delete>
+
+    <!-- Joined query: cart row + menu item + stall. Needs a resultMap
+         because columns come from three tables. -->
+    <resultMap id="cartViewMap" type="CartView">
+        <id     property="id"                   column="id"/>
+        <result property="menuItemId"           column="menu_item_id"/>
+        <result property="itemName"             column="item_name"/>
+        <result property="unitPrice"            column="unit_price"/>
+        <result property="quantity"             column="quantity"/>
+        <result property="stallId"              column="stall_id"/>
+        <result property="stallName"            column="stall_name"/>
+        <result property="stallDiscountPercent" column="stall_discount_percent"/>
+    </resultMap>
+
+    <select id="findCartView" resultMap="cartViewMap">
+        SELECT c.id              AS id,
+               c.menu_item_id    AS menu_item_id,
+               m.name            AS item_name,
+               m.price           AS unit_price,
+               c.quantity        AS quantity,
+               s.id              AS stall_id,
+               s.name            AS stall_name,
+               s.discount_percent AS stall_discount_percent
+        FROM cart_items c
+        JOIN menu_items m ON c.menu_item_id = m.id
+        JOIN stalls     s ON m.stall_id = s.id
+        WHERE c.user_id = #{userId}
+        ORDER BY c.id
+    </select>
+
+</mapper>

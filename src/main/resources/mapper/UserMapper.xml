@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.canteen.mapper.UserMapper">
+
+    <select id="findByUsername" resultType="User">
+        SELECT id, username, password_hash, email, role, stall_id, is_active, use_ldap
+        FROM users
+        WHERE username = #{username}
+    </select>
+
+    <select id="findAllUsers" resultType="User">
+        SELECT id, username, email, role, stall_id, is_active
+        FROM users
+        ORDER BY id
+    </select>
+
+    <select id="findById" resultType="User">
+        SELECT id, username, email, role, stall_id, is_active
+        FROM users
+        WHERE id = #{id}
+    </select>
+
+    <update id="setActive">
+        UPDATE users
+        SET is_active = #{isActive}
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (username, password_hash, email, role)
+        VALUES (#{username}, #{passwordHash}, #{email}, IFNULL(#{role}, 'student'))
+    </insert>
+
+    <update id="updateRoleAndStall">
+        UPDATE users
+        SET role = #{role}, stall_id = #{stallId}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE users
+        SET password_hash = #{passwordHash}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

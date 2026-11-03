@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.canteen.mapper.MenuMapper">
+
+    <!-- ===== M2: browse ===== -->
+    <select id="findActiveStalls" resultType="Stall">
+        SELECT id, name, description, is_active, is_open, discount_percent
+        FROM stalls
+        WHERE is_active = TRUE
+        ORDER BY id
+    </select>
+
+    <select id="findItemsByStall" resultType="MenuItem">
+        SELECT id, stall_id, name, description, price, image_url, is_available, stock
+        FROM menu_items
+        WHERE stall_id = #{stallId}
+        ORDER BY id
+    </select>
+
+    <!-- Search: if the keyword is empty, show all items of that stall. -->
+    <select id="searchItemsByStall" resultType="MenuItem">
+        SELECT id, stall_id, name, description, price, image_url, is_available, stock
+        FROM menu_items
+        WHERE stall_id = #{stallId}
+        <if test="keyword != null and keyword != ''">
+            AND name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        ORDER BY id
+    </select>
+
+    <select id="findItemById" resultType="MenuItem">
+        SELECT id, stall_id, name, description, price, image_url, is_available, stock
+        FROM menu_items
+        WHERE id = #{id}
+    </select>
+
+    <!-- ===== M6: admin/vendor menu CRUD ===== -->
+    <insert id="insertItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO menu_items (stall_id, name, description, price, image_url, is_available, stock)
+        VALUES (#{stallId}, #{name}, #{description}, #{price}, #{imageUrl}, IFNULL(#{isAvailable}, TRUE), IFNULL(#{stock}, 0))
+    </insert>
+
+    <update id="updateItem">
+        UPDATE menu_items
+        SET name = #{name},
+            description = #{description},
+            price = #{price},
+            image_url = #{imageUrl},
+            stock = #{stock}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteItem">
+        DELETE FROM menu_items WHERE id = #{id}
+    </delete>
+
+    <update id="toggleAvailability">
+        UPDATE menu_items
+        SET is_available = #{isAvailable}
+        WHERE id = #{id}
+    </update>
+
+    <!-- Restore stock when an order is cancelled. -->
+    <update id="restoreStock">
+        UPDATE menu_items
+        SET stock = stock + #{qty}
+        WHERE id = #{id}
+    </update>
+
+    <!-- Add stock (quick restock; re-enable the item if stock becomes > 0). -->
+    <update id="addStock">
+        UPDATE menu_items
+        SET stock = stock + #{qty},
+            is_available = CASE WHEN (stock + #{qty}) > 0 THEN TRUE ELSE is_available END
+        WHERE id = #{id}
+    </update>
+
+    <!-- Decrease stock at checkout. If stock reaches 0, automatically disable the item. -->
+    <update id="decreaseStock">
+        UPDATE menu_items
+        SET stock = stock - #{qty},
+            is_available = CASE WHEN (stock - #{qty}) &lt;= 0 THEN FALSE ELSE is_available END
+        WHERE id = #{id} AND stock >= #{qty}
+    </update>
+
+    <!-- ===== M7: superadmin ===== -->
+    <select id="findAllStalls" resultType="Stall">
+        SELECT id, name, description, is_active, is_open, discount_percent
+        FROM stalls
+        ORDER BY id
+    </select>
+
+    <update id="updateStallDiscount">
+        UPDATE stalls
+        SET discount_percent = #{discountPercent}
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertStall" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO stalls (name, description, is_active, is_open, discount_percent)
+        VALUES (#{name}, #{description}, IFNULL(#{isActive}, TRUE), TRUE, IFNULL(#{discountPercent}, 0))
+    </insert>
+
+    <!-- open/close stall (vendor control) -->
+    <update id="toggleStallOpen">
+        UPDATE stalls
+        SET is_open = #{isOpen}
+        WHERE id = #{id}
+    </update>
+
+    <!-- low stock: available but stock <= threshold -->
+    <select id="findLowStock" resultType="MenuItem">
+        SELECT id, stall_id, name, description, price, image_url, is_available, stock
+        FROM menu_items
+        WHERE stall_id = #{stallId} AND is_available = TRUE AND stock &lt;= #{threshold}
+        ORDER BY stock
+    </select>
+
+    <!-- superadmin: activate/deactivate stall -->
+    <update id="setStallActive">
+        UPDATE stalls
+        SET is_active = #{isActive}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findStallById" resultType="Stall">
+        SELECT id, name, description, is_active, is_open, discount_percent
+        FROM stalls
+        WHERE id = #{id}
+    </select>
+
+</mapper>

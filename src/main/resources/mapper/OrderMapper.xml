@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.canteen.mapper.OrderMapper">
+
+    <insert id="insertOrder" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO orders (user_id, stall_id, subtotal, discount_total, total_amount, payment_method, status)
+        VALUES (#{userId}, #{stallId}, #{subtotal}, #{discountTotal}, #{totalAmount}, #{paymentMethod}, #{status})
+    </insert>
+
+    <insert id="insertOrderItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_items (order_id, menu_item_id, item_name, unit_price, quantity)
+        VALUES (#{orderId}, #{menuItemId}, #{itemName}, #{unitPrice}, #{quantity})
+    </insert>
+
+    <select id="findOrdersByUser" resultType="Order">
+        SELECT id, user_id, subtotal, discount_total, total_amount, payment_method, status, created_at
+        FROM orders
+        WHERE user_id = #{userId}
+        ORDER BY id DESC
+    </select>
+
+    <select id="findItemsByOrder" resultType="OrderItem">
+        SELECT id, order_id, menu_item_id, item_name, unit_price, quantity
+        FROM order_items
+        WHERE order_id = #{orderId}
+        ORDER BY id
+    </select>
+
+    <update id="updateStatus">
+        UPDATE orders
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateOrderGroup">
+        UPDATE orders
+        SET order_group_id = #{groupId}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findOrderById" resultType="Order">
+        SELECT o.id, o.user_id, o.stall_id, o.subtotal, o.discount_total, o.total_amount,
+               o.payment_method, o.status, o.created_at, s.name AS stall_name
+        FROM orders o
+        LEFT JOIN stalls s ON s.id = o.stall_id
+        WHERE o.id = #{id}
+    </select>
+
+    <select id="findAllOrders" resultType="Order">
+        SELECT o.id, o.user_id, o.stall_id, o.order_group_id,
+               o.subtotal, o.discount_total, o.total_amount,
+               o.payment_method, o.status, o.created_at,
+               u.username AS username,
+               s.name     AS stall_name
+        FROM orders o
+        JOIN users  u ON u.id = o.user_id
+        LEFT JOIN stalls s ON s.id = o.stall_id
+        ORDER BY o.id DESC
+    </select>
+
+    <!-- Orders for a specific stall (one order = one stall since checkout splits by stall). -->
+    <select id="findOrdersByStall" resultType="Order">
+        SELECT o.id, o.user_id, o.stall_id, o.subtotal, o.discount_total, o.total_amount,
+               o.payment_method, o.status, o.created_at, u.username AS username
+        FROM orders o
+        JOIN users u ON u.id = o.user_id
+        WHERE o.stall_id = #{stallId}
+        <if test="status != null and status != ''">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.id DESC
+    </select>
+
+    <select id="countOrderInStall" resultType="int">
+        SELECT COUNT(*) FROM orders WHERE id = #{orderId} AND stall_id = #{stallId}
+    </select>
+
+    <select id="countOrdersByStallAndStatus" resultType="int">
+        SELECT COUNT(*) FROM orders WHERE stall_id = #{stallId} AND status = #{status}
+    </select>
+
+    <select id="todayRevenueByStall" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(oi.unit_price * oi.quantity), 0)
+        FROM orders o
+        JOIN order_items oi ON oi.order_id = o.id
+        JOIN menu_items m   ON m.id = oi.menu_item_id
+        WHERE m.stall_id = #{stallId} AND DATE(o.created_at) = CURDATE()
+    </select>
+
+    <select id="countOrdersToday" resultType="int">
+        SELECT COUNT(*)
+        FROM orders
+        WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <!-- ===== #11 audit: order status history ===== -->
+    <insert id="insertStatusLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_status_logs (order_id, status)
+        VALUES (#{orderId}, #{status})
+    </insert>
+
+    <select id="findStatusLogsByOrder" resultType="OrderStatusLog">
+        SELECT id, order_id, status, changed_at
+        FROM order_status_logs
+        WHERE order_id = #{orderId}
+        ORDER BY id
+    </select>
+
+    <!-- User's order history with an optional status filter. -->
+    <select id="findOrdersByUserFiltered" resultType="Order">
+        SELECT o.id, o.user_id, o.stall_id, o.order_group_id, o.subtotal, o.discount_total,
+               o.total_amount, o.payment_method, o.status, o.created_at, s.name AS stall_name
+        FROM orders o
+        LEFT JOIN stalls s ON s.id = o.stall_id
+        WHERE o.user_id = #{userId}
+        <if test="status != null and status != ''">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.id DESC
+    </select>
+
+    <!-- How many of this user's orders are already READY (pickup notification). -->
+    <select id="countReadyOrders" resultType="int">
+        SELECT COUNT(*) FROM orders
+        WHERE user_id = #{userId} AND status = 'READY'
+    </select>
+
+    <!-- Check whether the user has ordered this item and the order is completed. -->
+    <select id="countCompletedOrdersWithItem" resultType="int">
+        SELECT COUNT(*)
+        FROM orders o
+        JOIN order_items oi ON oi.order_id = o.id
+        WHERE o.user_id = #{userId}
+          AND oi.menu_item_id = #{menuItemId}
+          AND o.status IN ('READY', 'PICKED_UP')
+    </select>
+
+    <!-- ===== #5 sales report ===== -->
+    <select id="salesByStall" resultType="SalesReport">
+        SELECT s.name AS stall_name,
+               IFNULL(SUM(oi.unit_price * oi.quantity), 0) AS revenue,
+               COUNT(DISTINCT oi.order_id) AS order_count
+        FROM stalls s
+        LEFT JOIN menu_items m  ON m.stall_id = s.id
+        LEFT JOIN order_items oi ON oi.menu_item_id = m.id
+        WHERE s.id = #{stallId}
+        GROUP BY s.id, s.name
+    </select>
+
+    <select id="salesPerStall" resultType="SalesReport">
+        SELECT s.name AS stall_name,
+               IFNULL(SUM(oi.unit_price * oi.quantity), 0) AS revenue,
+               COUNT(DISTINCT oi.order_id) AS order_count
+        FROM stalls s
+        LEFT JOIN menu_items m  ON m.stall_id = s.id
+        LEFT JOIN order_items oi ON oi.menu_item_id = m.id
+        GROUP BY s.id, s.name
+        ORDER BY s.id
+    </select>
+
+    <select id="salesTotal" resultType="SalesReport">
+        SELECT NULL AS stall_name,
+               IFNULL(SUM(total_amount), 0) AS revenue,
+               COUNT(*) AS order_count
+        FROM orders
+    </select>
+
+    <!-- ===== dashboard charts: revenue per day, last 7 days ===== -->
+    <!-- One stall only (vendor). Days with no sales simply don't appear; the
+         service fills the gaps so the chart always shows 7 bars. -->
+    <select id="dailyRevenueByStall" resultType="DailySales">
+        SELECT DATE_FORMAT(o.created_at, '%Y-%m-%d') AS label,
+               IFNULL(SUM(oi.unit_price * oi.quantity), 0) AS revenue
+        FROM orders o
+        JOIN order_items oi ON oi.order_id = o.id
+        JOIN menu_items m   ON m.id = oi.menu_item_id
+        WHERE m.stall_id = #{stallId}
+          AND o.created_at >= CURDATE() - INTERVAL 6 DAY
+        GROUP BY label
+        ORDER BY label
+    </select>
+
+    <!-- Whole canteen (superadmin). -->
+    <select id="dailyRevenueAll" resultType="DailySales">
+        SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS label,
+               IFNULL(SUM(total_amount), 0) AS revenue
+        FROM orders
+        WHERE created_at >= CURDATE() - INTERVAL 6 DAY
+        GROUP BY label
+        ORDER BY label
+    </select>
+
+</mapper>

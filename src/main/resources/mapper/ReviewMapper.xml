@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.canteen.mapper.ReviewMapper">
+
+    <insert id="insertReview" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reviews (menu_item_id, user_id, rating, comment)
+        VALUES (#{menuItemId}, #{userId}, #{rating}, #{comment})
+    </insert>
+
+    <!-- JOIN to users so the reviewer's name is shown too. -->
+    <select id="findByMenuItem" resultType="Review">
+        SELECT r.id, r.menu_item_id, r.user_id, r.rating, r.comment, r.created_at,
+               u.username AS username
+        FROM reviews r
+        JOIN users u ON r.user_id = u.id
+        WHERE r.menu_item_id = #{menuItemId}
+        ORDER BY r.id DESC
+    </select>
+
+    <select id="averageRating" resultType="java.lang.Double">
+        SELECT AVG(rating)
+        FROM reviews
+        WHERE menu_item_id = #{menuItemId}
+    </select>
+
+    <!-- vendor: all reviews for items in their stall -->
+    <select id="findByStall" resultType="Review">
+        SELECT r.id, r.menu_item_id, r.user_id, r.rating, r.comment, r.created_at,
+               u.username AS username, m.name AS item_name
+        FROM reviews r
+        JOIN users u      ON r.user_id = u.id
+        JOIN menu_items m ON r.menu_item_id = m.id
+        WHERE m.stall_id = #{stallId}
+        ORDER BY r.id DESC
+    </select>
+
+    <!-- superadmin: all reviews for moderation -->
+    <select id="findAllReviews" resultType="Review">
+        SELECT r.id, r.menu_item_id, r.user_id, r.rating, r.comment, r.created_at,
+               u.username AS username, m.name AS item_name
+        FROM reviews r
+        JOIN users u      ON r.user_id = u.id
+        JOIN menu_items m ON r.menu_item_id = m.id
+        ORDER BY r.id DESC
+    </select>
+
+    <!-- Find a user's review for a specific item (for deduplication). -->
+    <select id="findByUserAndItem" resultType="Review">
+        SELECT id, menu_item_id, user_id, rating, comment, created_at
+        FROM reviews
+        WHERE user_id = #{userId} AND menu_item_id = #{menuItemId}
+        LIMIT 1
+    </select>
+
+    <!-- Update an existing review. -->
+    <update id="updateReview">
+        UPDATE reviews
+        SET rating = #{rating}, comment = #{comment}
+        WHERE user_id = #{userId} AND menu_item_id = #{menuItemId}
+    </update>
+
+    <delete id="deleteReview">
+        DELETE FROM reviews WHERE id = #{id}
+    </delete>
+
+</mapper>

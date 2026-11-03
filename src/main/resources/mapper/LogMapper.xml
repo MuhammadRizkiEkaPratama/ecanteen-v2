@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.canteen.mapper.LogMapper">
+
+    <insert id="insertLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO security_logs (username, action, detail)
+        VALUES (#{username}, #{action}, #{detail})
+    </insert>
+
+    <select id="findRecentLogs" resultType="SecurityLog">
+        SELECT id, username, action, detail, created_at
+        FROM security_logs
+        ORDER BY id DESC
+        LIMIT 100
+    </select>
+
+</mapper>
